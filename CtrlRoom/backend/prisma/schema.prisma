@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMINISTRATOR
+  PROGRAM_COORDINATOR
+  PARTNERSHIP_MANAGER
+  STAFF_USER
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  passwordHash  String?
+  googleId      String?
+  fullName      String
+  role          Role          @default(STAFF_USER)
+  title         String?
+  accessLevel   String?
+  createdAt     DateTime      @default(now())
+  lastLogin     DateTime?
+  partners      Partner[]     @relation("CreatedBy")
+  interactions  Interaction[]
+  students      Student[]     @relation("AddedBy")
+  activityLogs  ActivityLog[]
+  emailDrafts   EmailDraft[]
+}
+
+model Partner {
+  id                        String        @id @default(uuid())
+  organizationName          String
+  websiteUrl                String?
+  schoolType                String?       // e.g., High School / Vocational
+  officialStatusDate        DateTime?
+  courseNumber              Int?
+  makeVirtualHours          Int?
+  totalPaidContentSees      Int?
+  partnerType               String?       // Dropdown (e.g., Educational Non‑Profit, Corporate)
+  partnerStatus             String?       // Active, Pending, Inactive
+  currentStatusNotes        String?
+  earlyReleaseForSeniors    Boolean       @default(false)
+  pastCohortMembers         Json?         // List of student names/IDs
+  originalJobNoticeDetails  String?
+  createdBy                 User          @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById               String
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+  contacts                  Contact[]
+  interactions              Interaction[]
+  students                  Student[]
+  emailDrafts               EmailDraft[]
+}
+
+enum ContactType {
+  LEADERSHIP
+  PRIMARY
+  SECONDARY
+}
+
+model Contact {
+  id          String      @id @default(uuid())
+  partner     Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerId   String
+  contactType ContactType
+  name        String
+  email       String
+  title       String?
+}
+
+enum InteractionType {
+  INFOSESSION
+  TABLING
+  MEETING
+  OUTREACH
+  INTERVIEWS
+  STUDENT_APPLICATION
+}
+
+model Interaction {
+  id               String            @id @default(uuid())
+  partner          Partner           @relation(fields: [partnerId], references: [id])
+  partnerId        String
+  interactionType  InteractionType
+  staff            User              @relation(fields: [staffId], references: [id])
+  staffId          String
+  date             DateTime
+  studentCount     Int               @default(0)
+  sharedNotes      String?
+  needsFollowup    Boolean           @default(false)
+  followupDueDate  DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  students         Student[]         @relation("InteractionStudents")
+}
+
+enum StudentStatus {
+  ACTIVE_MEMBER
+  APPLICANT
+  ALUMNI
+  PENDING
+}
+
+model Student {
+  id                    String        @id @default(uuid())
+  fullName              String
+  email                 String?
+  partner               Partner       @relation(fields: [partnerId], references: [id])
+  partnerId             String
+  status                StudentStatus @default(PENDING)
+  cohort                String?       // e.g., Class of '24, Pending
+  earlyReleaseEligible  Boolean       @default(false)
+  addedBy               User          @relation("AddedBy", fields: [addedById], references: [id])
+  addedById             String
+  addedDate             DateTime      @default(now())
+  notes                 String?
+  interactions          Interaction[] @relation("InteractionStudents")
+}
+
+model ActivityLog {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String
+  action          String   // EDITED, ADDED, DELETED, LOGGED_IN, etc.
+  targetType      String   // partner, student, interaction, user
+  targetId        String?
+  targetName      String?  // Human readable, e.g., "TechBridge Academy"
+  additionalInfo  String?
+  createdAt       DateTime @default(now())
+}
+
+model EmailDraft {
+  id             String   @id @default(uuid())
+  staff          User     @relation(fields: [staffId], references: [id])
+  staffId        String
+  partner        Partner  @relation(fields: [partnerId], references: [id])
+  partnerId      String
+  contactEmail   String
+  subject        String
+  body           String
+  aiPromptUsed   String?
+  isSent         Boolean  @default(false)
+  sentAt         DateTime?
+  createdAt      DateTime @default(now())
+}

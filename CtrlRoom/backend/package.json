@@ -11,10 +11,14 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "prisma": "^7.7.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.6.1",
+    "prisma": "^7.7.0"
   },
   "dependencies": {
-    "@prisma/client": "^7.7.0"
+    "@prisma/client": "^7.7.0",
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "openai": "^6.34.0"
   }
 }

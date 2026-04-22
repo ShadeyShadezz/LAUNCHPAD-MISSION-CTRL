@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const prisma = new PrismaClient();
@@ -13,10 +16,113 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
 
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecret-supersecret-supersecret';
+
+const transporter = nodemailer.createTransporter({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || 'your-gmail@gmail.com',
+    pass: process.env.GMAIL_APP_PASSWORD || 'your-app-password'
+  }
+});
+
 // Auth Endpoints
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, fullName, role = 'STAFF_USER' } = req.body;
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) return res.status(400).json({ error: 'User already exists' });
+    
+    const passwordHash = await bcrypt.hash(password, 12);
+    
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        fullName,
+        role
+      }
+    });
+    
+    const token = jwt.sign({ 
+      id: user.id, 
+      email: user.email,
+      role: user.role 
+    }, JWT_SECRET, { expiresIn: '7d' });
+    
+    res.json({ 
+      token, 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        fullName: user.fullName, 
+        role: user.role 
+      } 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
 app.post('/api/auth/login', async (req, res) => {
-  // Placeholder for login logic
-  res.status(200).json({ message: 'Login successful' });
+  try {
+    const { email, password } = req.body;
+    
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.passwordHash) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const token = jwt.sign({ 
+      id: user.id, 
+      email: user.email,
+      role: user.role 
+    }, JWT_SECRET, { expiresIn: '7d' });
+    
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() }
+    });
+    
+    res.json({ 
+      token, 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        fullName: user.fullName, 
+        role: user.role 
+      } 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Email Send
+app.post('/api/email/send', async (req, res) => {
+  try {
+    const { to, subject, text, html } = req.body;
+    
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to,
+      subject,
+      text,
+      html
+    });
+    
+    res.json({ success: true, message: 'Email sent' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Send failed' });
+  }
 });
 
 // Partners Endpoints
@@ -176,4 +282,17 @@ app.post('/api/email-drafts', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully');
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  await prisma.$disconnect();
+  process.exit(0);
 });

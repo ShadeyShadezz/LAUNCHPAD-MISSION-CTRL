@@ -1,102 +1,237 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Plus, Search, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
-interface Interaction {
-  id: string;
-  interactionType: string;
-  date: string;
-  studentCount: number;
-  sharedNotes: string;
-  needsFollowup: boolean;
-  followupDueDate: string;
-  partner: { organizationName: string };
-}
+const InteractionsPage = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [filterStaff, setFilterStaff] = useState('all');
 
-export default function InteractionsPage() {
-  const [interactions, setInteractions] = useState<Interaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const stats = [
+    { label: 'Interactions This Month', value: 24 },
+    { label: 'Student Reachable', value: 145 },
+    { label: 'Staff Contributions', value: 6 },
+    { label: 'Pending Follow-up', value: 5 },
+  ];
 
-  useEffect(() => {
-    fetchInteractions();
-  }, []);
+  const interactions = [
+    { id: '1', date: '2024-04-20', partner: 'TechBridge Academy', type: 'Infosession', staff: 'Sarah Jenkins', students: 25, notes: 'Great turnout' },
+    { id: '2', date: '2024-04-18', partner: 'Youth Empowerment Center', type: 'Meeting', staff: 'James Brown', students: 0, notes: 'Partnership discussion' },
+    { id: '3', date: '2024-04-15', partner: 'Lincoln High School', type: 'Tabling', staff: 'Sarah Jenkins', students: 18, notes: 'Student recruitment event' },
+  ];
 
-  const fetchInteractions = async () => {
-    const res = await fetch('http://localhost:5000/api/interactions');
-    const data = await res.json();
-    setInteractions(data);
-    setLoading(false);
-  };
+  const pendingFollowUps = [
+    { id: '1', interaction: 'TechBridge Academy Infosession', dueDate: '2024-04-25', owner: 'Sarah Jenkins', notes: 'Send thank you email' },
+    { id: '2', interaction: 'Lincoln High School Meeting', dueDate: '2024-04-23', owner: 'James Brown', notes: 'Follow-up discussion' },
+  ];
 
-  const [formData, setFormData] = useState({
-    partnerId: '',
-    interactionType: '',
-    staffId: 'temp-staff',
-    date: '',
-    studentCount: 0,
-    sharedNotes: '',
-    needsFollowup: false,
-    followupDueDate: '',
+  const filteredInteractions = interactions.filter((i) => {
+    const matchesSearch = i.partner.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === 'all' || i.type.toLowerCase() === filterType;
+    const matchesStaff = filterStaff === 'all' || i.staff === filterStaff;
+    return matchesSearch && matchesType && matchesStaff;
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await fetch('http://localhost:5000/api/interactions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
-    fetchInteractions();
-  };
-
-  if (loading) return <div className="container mx-auto py-10">Loading...</div>;
-
   return (
-    <div className="container mx-auto py-10 px-4 max-w-7xl">
-      <h1 className="text-3xl font-bold mb-8">Interactions</h1>
+    <div className="min-h-screen p-8" style={{ backgroundColor: "var(--background)" }}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold" style={{ color: "var(--foreground)" }}>
+              Interactions Log
+            </h1>
+            <p className="text-sm mt-2" style={{ color: "var(--muted-foreground)" }}>
+              Track shared outreach activity
+            </p>
+          </div>
+          <Link
+            href="/interactions/new"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all"
+            style={{ backgroundColor: "var(--primary)" }}
+          >
+            <Plus size={20} />
+            Log Interaction
+          </Link>
+        </div>
 
-      {/* Create Form */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
-        <h2 className="text-2xl font-semibold mb-6">New Interaction</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Form fields: partnerId select, type dropdown, date, etc */}
-          <button type="submit" className="md:col-span-2 bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 font-medium">
-            Create Interaction
-          </button>
-        </form>
-      </div>
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-lg border p-6"
+              style={{
+                backgroundColor: "var(--card)",
+                borderColor: "var(--border)",
+              }}
+            >
+              <p className="text-sm mb-2" style={{ color: "var(--muted-foreground)" }}>
+                {stat.label}
+              </p>
+              <p className="text-3xl font-bold" style={{ color: "var(--primary)" }}>
+                {stat.value}
+              </p>
+            </div>
+          ))}
+        </div>
 
-      {/* List */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md">
-          <thead>
-            <tr className="bg-gray-50 dark:bg-gray-700">
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Type</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Partner</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Date</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Students</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Followup</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {interactions.map((int) => (
-              <tr key={int.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{int.interactionType}</td>
-                <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{int.partner.organizationName}</td>
-                <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{new Date(int.date).toLocaleDateString()}</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{int.studentCount}</td>
-                <td className="px-6 py-4">
-                  {int.needsFollowup && (
-                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                      Followup {int.followupDueDate && new Date(int.followupDueDate).toLocaleDateString()}
-                    </span>
-                  )}
-                </td>
-              </tr>
+        {/* Filters */}
+        <div className="flex gap-4 flex-wrap">
+          <div className="flex-1 min-w-64 relative">
+            <Search className="absolute left-3 top-3" size={20} style={{ color: "var(--muted-foreground)" }} />
+            <input
+              type="text"
+              placeholder="Search by partner..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border rounded-lg"
+              style={{
+                backgroundColor: "var(--input)",
+                borderColor: "var(--border)",
+                color: "var(--foreground)",
+              }}
+            />
+          </div>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-4 py-2 border rounded-lg font-medium cursor-pointer"
+            style={{
+              backgroundColor: "var(--input)",
+              borderColor: "var(--border)",
+              color: "var(--foreground)",
+            }}
+          >
+            <option value="all">All Types</option>
+            <option value="infosession">Infosession</option>
+            <option value="meeting">Meeting</option>
+            <option value="tabling">Tabling</option>
+            <option value="outreach">Outreach</option>
+            <option value="interviews">Interviews</option>
+          </select>
+          <select
+            value={filterStaff}
+            onChange={(e) => setFilterStaff(e.target.value)}
+            className="px-4 py-2 border rounded-lg font-medium cursor-pointer"
+            style={{
+              backgroundColor: "var(--input)",
+              borderColor: "var(--border)",
+              color: "var(--foreground)",
+            }}
+          >
+            <option value="all">All Staff</option>
+            <option value="Sarah Jenkins">Sarah Jenkins</option>
+            <option value="James Brown">James Brown</option>
+          </select>
+        </div>
+
+        {/* Recent Interactions */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--foreground)" }}>
+            Recent Interactions
+          </h2>
+          <div className="grid gap-4">
+            {filteredInteractions.map((interaction) => (
+              <div
+                key={interaction.id}
+                className="rounded-lg border p-6"
+                style={{
+                  backgroundColor: "var(--card)",
+                  borderColor: "var(--border)",
+                }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
+                      Date
+                    </p>
+                    <p className="font-semibold" style={{ color: "var(--foreground)" }}>
+                      {new Date(interaction.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
+                      Partner
+                    </p>
+                    <p className="font-semibold" style={{ color: "var(--foreground)" }}>
+                      {interaction.partner}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
+                      Type
+                    </p>
+                    <p className="font-semibold" style={{ color: "var(--primary)" }}>
+                      {interaction.type}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
+                      Staff
+                    </p>
+                    <p className="font-semibold" style={{ color: "var(--foreground)" }}>
+                      {interaction.staff}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
+                      Students
+                    </p>
+                    <p className="font-semibold" style={{ color: "var(--success)" }}>
+                      {interaction.students}
+                    </p>
+                  </div>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
+
+        {/* Pending Follow-ups */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2" style={{ color: "var(--foreground)" }}>
+            <AlertCircle size={24} style={{ color: "var(--warning)" }} />
+            Needs Follow-up
+          </h2>
+          <div className="grid gap-4">
+            {pendingFollowUps.map((followUp) => (
+              <div
+                key={followUp.id}
+                className="rounded-lg border-l-4 p-6"
+                style={{
+                  backgroundColor: "var(--card)",
+                  borderColor: "var(--warning)",
+                  borderLeftWidth: '4px',
+                }}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold mb-2" style={{ color: "var(--foreground)" }}>
+                      {followUp.interaction}
+                    </p>
+                    <p className="text-sm mb-2" style={{ color: "var(--muted-foreground)" }}>
+                      {followUp.notes}
+                    </p>
+                    <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                      Assigned to: {followUp.owner}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold" style={{ color: "var(--warning)" }}>
+                      Due: {new Date(followUp.dueDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default InteractionsPage;

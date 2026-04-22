@@ -1,17 +1,16 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
+import { Plus, Search } from "lucide-react";
+import Link from 'next/link';
 
 interface Student {
   id: string;
   fullName: string;
-  email: string | null;
-  partner: { 
-    organizationName: string; 
-    id: string 
-  };
+  email?: string | null;
+  partner: { id: string; organizationName: string };
   status: string;
-  cohort: string | null;
+  cohort?: string | null;
   earlyReleaseEligible: boolean;
   addedDate: string;
 }
@@ -89,7 +88,7 @@ export default function StudentsPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await fetch(`http://localhost:5000/api/students`, {
+      await fetch(`http://localhost:5000/api/students/${editForm.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm),
@@ -113,206 +112,107 @@ export default function StudentsPage() {
     }
   };
 
-  if (loading) return <div className="container mx-auto py-10 px-4 text-center">Loading students...</div>;
+  if (loading) return <div className="p-8 text-center">Loading students...</div>;
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-7xl">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Students</h1>
-        <button 
-          onClick={() => setShowForm(!showForm)}
-          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition-colors shadow-md"
-        >
-          {showForm ? 'Cancel' : 'Add Student'}
-        </button>
-      </div>
-
-      {showForm && (
-        <div className="bg-white shadow-xl rounded-xl p-8 mb-8 border border-gray-200">
-          <h2 className="text-2xl font-bold mb-8 text-gray-900">Add New Student</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Name *
-              </label>
-              <input
-                type="text"
-                placeholder="John Doe"
-                value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                placeholder="john@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Partner ID
-              </label>
-              <input
-                type="text"
-                placeholder="partner-uuid-from-partners-page"
-                value={formData.partnerId}
-                onChange={(e) => setFormData({ ...formData, partnerId: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-              >
-                <option value="PENDING">Pending</option>
-                <option value="ACTIVE_MEMBER">Active Member</option>
-                <option value="ALUMNI">Alumni</option>
-                <option value="APPLICANT">Applicant</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Cohort
-              </label>
-              <input
-                type="text"
-                placeholder="Class of 2025"
-                value={formData.cohort}
-                onChange={(e) => setFormData({ ...formData, cohort: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-              />
-            </div>
-            <div className="lg:col-span-2 flex items-center">
-              <input
-                id="early-release"
-                type="checkbox"
-                checked={formData.earlyReleaseEligible}
-                onChange={(e) => setFormData({ ...formData, earlyReleaseEligible: e.target.checked })}
-                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-              />
-              <label htmlFor="early-release" className="ml-3 block text-sm font-semibold text-gray-700">
-                Early Release Eligible
-              </label>
-            </div>
-            <button 
-              type="submit" 
-              className="lg:col-span-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-8 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-blue-300"
-            >
-              Add Student
-            </button>
-          </form>
+    <div className="min-h-screen p-8" style={{ backgroundColor: "var(--background)" }}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-4xl font-bold" style={{ color: "var(--foreground)" }}>Students Directory</h1>
+          <button 
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 focus:ring-4 focus:ring-[var(--primary)]/30 transition-all duration-200"
+            style={{ background: "linear-gradient(135deg, var(--primary) 0%, #0284c7 100%)" }}
+          >
+            <Plus size={20} />
+            {showForm ? 'Cancel' : 'Add Student'}
+          </button>
         </div>
-      )}
 
-      {editingId && (
-        <div className="bg-amber-50 border-l-4 border-amber-400 p-8 rounded-xl shadow-lg mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">Edit Student</h2>
-          <form onSubmit={handleUpdate} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={editForm.fullName}
-                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
-              />
+        {showForm && (
+          <div className="bg-white rounded-xl p-8 border shadow-lg" style={{ borderColor: "var(--border)" }}>
+            <h2 className="text-2xl font-bold mb-6" style={{ color: "var(--foreground)" }}>Add New Student</h2>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold mb-2" style={{ color: "var(--foreground)" }}>Full Name *</label>
+                <input type="text" required value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full p-3 border rounded-lg" style={{ borderColor: "var(--border)", backgroundColor: "var(--input)" }} />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2" style={{ color: "var(--foreground)" }}>Partner ID *</label>
+                <input type="text" required value={formData.partnerId} onChange={(e) => setFormData({...formData, partnerId: e.target.value})} className="w-full p-3 border rounded-lg" style={{ borderColor: "var(--border)", backgroundColor: "var(--input)" }} />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2" style={{ color: "var(--foreground)" }}>Status</label>
+                <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full p-3 border rounded-lg" style={{ borderColor: "var(--border)", backgroundColor: "var(--input)" }}>
+                  <option value="PENDING">Pending</option>
+                  <option value="ACTIVE_MEMBER">Active</option>
+                  <option value="ALUMNI">Alumni</option>
+                </select>
+              </div>
+              <div className="flex items-center">
+                <input id="early-release" type="checkbox" checked={formData.earlyReleaseEligible} onChange={(e) => setFormData({...formData, earlyReleaseEligible: e.target.checked})} className="mr-2" />
+                <label htmlFor="early-release" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>Early Release Eligible</label>
+              </div>
+              <button type="submit" className="md:col-span-2 px-8 py-3 rounded-xl font-semibold text-white shadow-lg transition md:justify-self-start" style={{ backgroundColor: "var(--primary)" }}>Add Student</button>
+            </form>
+          </div>
+        )}
+
+        {editingId && (
+          <div className="bg-yellow-50 border-l-4 p-6 rounded-lg border-yellow-400" >
+            <h2 className="text-xl font-bold mb-4" style={{ color: "var(--foreground)" }}>Edit Student</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input value={editForm.fullName} onChange={(e) => setEditForm({...editForm, fullName: e.target.value})} className="p-3 border rounded-lg" style={{ borderColor: "var(--border)", backgroundColor: "var(--input)" }} />
+              <button onClick={handleUpdate} className="px-6 py-2 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 focus:ring-4 focus:ring-green-500/30 transition-all duration-200" style={{ background: "linear-gradient(135deg, var(--success) 0%, #059669 100%)" }}>Update</button>
+              <button onClick={() => setEditingId(null)} className="px-6 py-2 rounded-lg font-semibold" style={{ backgroundColor: "var(--muted)" }}>Cancel</button>
             </div>
-            <button 
-              type="submit" 
-              className="lg:col-span-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-4 px-8 rounded-xl shadow-lg mr-4 transition-all"
-            >
-              Update Student
-            </button>
-            <button 
-              type="button" 
-              onClick={() => setEditingId(null)}
-              className="lg:col-span-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg transition-all"
-            >
-              Cancel
-            </button>
-          </form>
-        </div>
-      )}
+          </div>
+        )}
 
-      <div className="bg-white shadow-2xl rounded-2xl overflow-hidden">
-        <table className="min-w-full">
-          <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-            <tr>
-              <th className="px-8 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
-              <th className="px-8 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
-              <th className="px-8 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Partner</th>
-              <th className="px-8 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-              <th className="px-8 py-5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Cohort</th>
-              <th className="px-8 py-5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {students.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-8 py-12 text-center text-gray-500">
-                  No students yet. Add one above.
-                </td>
+        <div className="bg-white rounded-xl overflow-hidden shadow-lg border" style={{ borderColor: "var(--border)" }}>
+          <table className="w-full">
+            <thead>
+              <tr style={{ backgroundColor: "var(--secondary)" }}>
+                <th className="p-4 text-left font-semibold" style={{ color: "var(--foreground)" }}>Name</th>
+                <th className="p-4 text-left font-semibold" style={{ color: "var(--foreground)" }}>Email</th>
+                <th className="p-4 text-left font-semibold" style={{ color: "var(--foreground)" }}>Partner</th>
+                <th className="p-4 text-left font-semibold" style={{ color: "var(--foreground)" }}>Status</th>
+                <th className="p-4 text-left font-semibold" style={{ color: "var(--foreground)" }}>Cohort</th>
+                <th className="p-4 text-right font-semibold" style={{ color: "var(--foreground)" }}>Actions</th>
               </tr>
-            ) : (
-              students.map((student) => (
-                <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-8 py-5 text-sm font-semibold text-gray-900">
-                    {student.fullName}
-                  </td>
-                  <td className="px-8 py-5 text-sm text-gray-600">
-                    {student.email || 'No email'}
-                  </td>
-                  <td className="px-8 py-5 text-sm font-medium text-gray-900">
-                    {student.partner.organizationName}
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full capitalize ${
-                      student.status === 'active_member' 
-                        ? 'bg-green-100 text-green-800' 
-                        : student.status === 'pending' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {student.status.replace('_', ' ').toLowerCase()}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 text-sm text-gray-600">
-                    {student.cohort || 'N/A'}
-                  </td>
-                  <td className="px-8 py-5 text-right text-sm space-x-3">
-                    <button 
-                      onClick={() => handleEdit(student)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm hover:shadow-md"
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(student.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm hover:shadow-md"
-                    >
-                      Delete
-                    </button>
+            </thead>
+            <tbody>
+              {students.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center" style={{ color: "var(--muted-foreground)" }}>
+                    No students found. Add your first!
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                students.map((student) => (
+                  <tr key={student.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                    <td className="p-4 font-medium" style={{ color: "var(--foreground)" }}>{student.fullName}</td>
+                    <td className="p-4" style={{ color: "var(--muted-foreground)" }}>{student.email || 'N/A'}</td>
+                    <td className="p-4" style={{ color: "var(--foreground)" }}>{student.partner.organizationName}</td>
+                    <td className="p-4">
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{
+                        backgroundColor: student.status === 'ACTIVE_MEMBER' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                        color: student.status === 'ACTIVE_MEMBER' ? 'var(--success)' : 'var(--warning)'
+                      }}>
+                        {student.status.replace('_', ' ').toLowerCase()}
+                      </span>
+                    </td>
+                    <td className="p-4" style={{ color: "var(--muted-foreground)" }}>{student.cohort || 'N/A'}</td>
+                    <td className="p-4 text-right space-x-2">
+                      <button onClick={() => handleEdit(student)} className="px-4 py-1 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: "var(--primary)" }}>Edit</button>
+              <button onClick={() => handleDelete(student.id)} className="px-4 py-1 rounded-lg text-xs font-semibold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:ring-4 focus:ring-red-500/30 transition-all duration-200 ml-2" style={{ background: "linear-gradient(135deg, var(--destructive) 0%, #dc2626 100%)" }}>Delete</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

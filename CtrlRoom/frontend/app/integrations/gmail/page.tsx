@@ -36,15 +36,24 @@ export default function GmailIntegration() {
   }, [partnerId]);
 
   const fetchPartners = async () => {
-    const res = await fetch('http://localhost:5000/api/partners').catch(() => new Response(JSON.stringify([]), { status: 200, headers: { 'Content-Type': 'application/json' } } as any));
-    const data = await res.json();
-    setPartners(data);
+    try {
+      const res = await fetch('http://localhost:5000/api/partners');
+      const data = await res.json();
+      setPartners(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      setPartners([]);
+    }
   };
 
   const fetchPartner = async (id: string) => {
-    const res = await fetch(`http://localhost:5000/api/partners/${id}`) || new Response(JSON.stringify({}), { status: 200 });
-    const data = await res.json();
-    setPartner(data);
+    try {
+      const res = await fetch(`http://localhost:5000/api/partners/${id}`);
+      const data = await res.json();
+      setPartner(data);
+    } catch (error) {
+      console.error('Error fetching partner:', error);
+    }
   };
 
   const generateEmail = async () => {

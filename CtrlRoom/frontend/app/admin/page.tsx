@@ -1,19 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Filter, Calendar } from 'lucide-react';
+import { Search, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { clsx } from 'clsx';
 
 const AdminPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterAction, setFilterAction] = useState('all');
-  const [filterDateRange, setFilterDateRange] = useState('7days');
 
   const activityLogs = [
-    { id: '1', staff: 'Sarah Jenkins', action: 'EDITED', target: 'TechBridge Academy', info: 'Updated contact information', timestamp: '2024-04-20 14:32:15' },
-    { id: '2', staff: 'James Brown', action: 'ADDED', target: 'Maria Garcia', info: 'Added new student', timestamp: '2024-04-20 10:15:42' },
-    { id: '3', staff: 'Sarah Jenkins', action: 'LOGGED IN', target: 'System', info: 'Staff login', timestamp: '2024-04-20 08:45:00' },
-    { id: '4', staff: 'Maria Garcia', action: 'ADDED', target: 'Youth Center Infosession', info: 'Logged interaction', timestamp: '2024-04-19 16:20:33' },
-    { id: '5', staff: 'David Chen', action: 'DELETED', target: 'Pending Partner', info: 'Removed inactive partner', timestamp: '2024-04-19 13:10:22' },
+    { id: '1', staff: 'Sarah Jenkins', action: 'EDITED', target: 'TechBridge Academy', info: 'Updated contact information', timestamp: '2024-04-20 14:32' },
+    { id: '2', staff: 'James Brown', action: 'ADDED', target: 'Maria Garcia', info: 'Added new student', timestamp: '2024-04-20 10:15' },
+    { id: '3', staff: 'Sarah Jenkins', action: 'LOGGED IN', target: 'System', info: 'Staff login', timestamp: '2024-04-20 08:45' },
+    { id: '4', staff: 'Maria Garcia', action: 'ADDED', target: 'Youth Center Infosession', info: 'Logged interaction', timestamp: '2024-04-19 16:20' },
+    { id: '5', staff: 'David Chen', action: 'DELETED', target: 'Pending Partner', info: 'Removed inactive partner', timestamp: '2024-04-19 13:10' },
   ];
 
   const filteredLogs = activityLogs.filter((log) => {
@@ -24,197 +24,128 @@ const AdminPage = () => {
     return matchesSearch && matchesAction;
   });
 
-  const getActionColor = (action: string) => {
+  const getActionStyles = (action: string) => {
     switch (action) {
-      case 'ADDED':
-        return 'var(--success)';
-      case 'EDITED':
-        return 'var(--primary)';
-      case 'DELETED':
-        return 'var(--destructive)';
-      case 'LOGGED IN':
-        return 'var(--accent)';
-      default:
-        return 'var(--muted-foreground)';
+      case 'ADDED': return 'bg-success/10 text-success border-success/20';
+      case 'EDITED': return 'bg-primary/10 text-primary border-primary/20';
+      case 'DELETED': return 'bg-destructive/10 text-destructive border-destructive/20';
+      case 'LOGGED IN': return 'bg-accent/10 text-accent border-accent/20';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
-  const getActionBg = (action: string) => {
-    const color = getActionColor(action);
-    if (color === 'var(--success)') return 'rgba(16, 185, 129, 0.1)';
-    if (color === 'var(--primary)') return 'rgba(14, 165, 164, 0.1)';
-    if (color === 'var(--destructive)') return 'rgba(239, 68, 68, 0.1)';
-    if (color === 'var(--accent)') return 'rgba(249, 115, 22, 0.1)';
-    return 'rgba(156, 163, 175, 0.1)';
-  };
-
   return (
-    <div className="min-h-screen p-8" style={{ backgroundColor: "var(--background)" }}>
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-8 py-10 space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
-            Admin Controls
-          </h1>
-          <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-            Activity log and system administration
-          </p>
-        </div>
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Admin Controls</h1>
+            <p className="mt-2 text-muted-foreground">Monitor system activity and manage logs.</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card px-4 py-2 rounded-lg border border-border">
+            <Calendar size={16} className="text-primary" />
+            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+          </div>
+        </section>
 
-        {/* Search and Filters */}
-        <div className="flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-64 relative">
-            <Search className="absolute left-3 top-3" size={20} style={{ color: "var(--muted-foreground)" }} />
+        {/* Filters */}
+        <section className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-7 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input
               type="text"
               placeholder="Search by staff, target, or details..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-              style={{
-                backgroundColor: "var(--input)",
-                borderColor: "var(--border)",
-                color: "var(--foreground)",
-              }}
+              className="w-full pl-10 pr-4 py-2.5 bg-input border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
           </div>
-          <select
-            value={filterAction}
-            onChange={(e) => setFilterAction(e.target.value)}
-            className="px-4 py-2 border rounded-lg font-medium cursor-pointer"
-            style={{
-              backgroundColor: "var(--input)",
-              borderColor: "var(--border)",
-              color: "var(--foreground)",
-            }}
-          >
-            <option value="all">All Actions</option>
-            <option value="ADDED">Added</option>
-            <option value="EDITED">Edited</option>
-            <option value="DELETED">Deleted</option>
-            <option value="LOGGED IN">Logged In</option>
-          </select>
-          <select
-            value={filterDateRange}
-            onChange={(e) => setFilterDateRange(e.target.value)}
-            className="px-4 py-2 border rounded-lg font-medium cursor-pointer"
-            style={{
-              backgroundColor: "var(--input)",
-              borderColor: "var(--border)",
-              color: "var(--foreground)",
-            }}
-          >
-            <option value="today">Today</option>
-            <option value="7days">Last 7 Days</option>
-            <option value="30days">Last 30 Days</option>
-            <option value="all">All Time</option>
-          </select>
-        </div>
+          <div className="md:col-span-5 relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={16} />
+            <select
+              value={filterAction}
+              onChange={(e) => setFilterAction(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-input border border-border rounded-lg text-sm font-medium text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            >
+              <option value="all">All Actions</option>
+              <option value="ADDED">Added</option>
+              <option value="EDITED">Edited</option>
+              <option value="DELETED">Deleted</option>
+              <option value="LOGGED IN">Logged In</option>
+            </select>
+          </div>
+        </section>
 
-        {/* Activity Log Table */}
-        <div
-          className="rounded-lg border overflow-hidden"
-          style={{
-            backgroundColor: "var(--card)",
-            borderColor: "var(--border)",
-          }}
-        >
-          <table className="w-full">
-            <thead>
-              <tr style={{ backgroundColor: "var(--secondary)", borderBottom: `1px solid var(--border)` }}>
-                <th className="px-6 py-4 text-left text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                  Staff
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                  Action
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                  Target / Record
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                  Details
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                  Date & Time
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLogs.length > 0 ? (
-                filteredLogs.map((log) => (
-                  <tr
-                    key={log.id}
-                    style={{
-                      borderBottom: `1px solid var(--border)`,
-                      backgroundColor: "var(--card)",
-                    }}
-                    className="hover:opacity-75 transition-all"
-                  >
-                    <td className="px-6 py-4 text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                      {log.staff}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span
-                        className="px-3 py-1 rounded-full text-xs font-semibold"
-                        style={{
-                          backgroundColor: getActionBg(log.action),
-                          color: getActionColor(log.action),
-                        }}
-                      >
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium" style={{ color: "var(--primary)" }}>
-                      {log.target}
-                    </td>
-                    <td className="px-6 py-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
-                      {log.info}
-                    </td>
-                    <td className="px-6 py-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
-                      {log.timestamp}
+        {/* Table */}
+        <section className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-muted/40 border-b border-border">
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staff</th>
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</th>
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Target</th>
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Details</th>
+                  <th className="px-6 py-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Time</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredLogs.length > 0 ? (
+                  filteredLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                            {log.staff.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <span className="text-sm font-medium text-foreground">{log.staff}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={clsx('px-2.5 py-1 rounded-md text-[10px] font-bold border uppercase tracking-wide', getActionStyles(log.action))}>
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-primary bg-primary/5 px-2 py-1 rounded">{log.target}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">{log.info}</td>
+                      <td className="px-6 py-4 text-xs text-muted-foreground">{log.timestamp}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center">
+                      <Search size={24} className="mx-auto text-muted-foreground mb-3" />
+                      <p className="text-sm font-medium text-foreground">No matching logs</p>
+                      <p className="text-xs text-muted-foreground mt-1">Try adjusting your search or filters.</p>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center" style={{ color: "var(--muted-foreground)" }}>
-                    No activity found matching your search.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-        {/* Pagination Info */}
-        <div className="flex items-center justify-between text-sm" style={{ color: "var(--muted-foreground)" }}>
-          <p>Showing 1 to 5 of {activityLogs.length} entries</p>
-          <div className="flex gap-2">
-            <button
-              className="px-3 py-1 rounded border transition-all"
-              style={{
-                backgroundColor: "var(--secondary)",
-                borderColor: "var(--border)",
-                color: "var(--secondary-foreground)",
-              }}
-            >
-              Previous
+        {/* Pagination */}
+        <section className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            Showing <span className="font-semibold text-foreground">1–{filteredLogs.length}</span> of <span className="font-semibold text-foreground">{activityLogs.length}</span> entries
+          </p>
+          <div className="flex items-center gap-2">
+            <button className="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-muted transition-colors">
+              <ChevronLeft size={16} /> Previous
             </button>
-            <button
-              className="px-3 py-1 rounded border transition-all"
-              style={{
-                backgroundColor: "var(--secondary)",
-                borderColor: "var(--border)",
-                color: "var(--secondary-foreground)",
-              }}
-            >
-              Next
+            <button className="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-muted transition-colors">
+              Next <ChevronRight size={16} />
             </button>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
 };
 
 export default AdminPage;
+

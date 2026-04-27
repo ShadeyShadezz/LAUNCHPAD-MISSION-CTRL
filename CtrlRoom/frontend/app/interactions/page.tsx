@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, AlertCircle } from 'lucide-react';
+import { Plus, Search, AlertCircle, Calendar, Users, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { clsx } from 'clsx';
 
-const InteractionsPage = () => {
+export default function InteractionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStaff, setFilterStaff] = useState('all');
 
   const stats = [
-    { label: 'Interactions This Month', value: 24 },
-    { label: 'Student Reachable', value: 145 },
-    { label: 'Staff Contributions', value: 6 },
-    { label: 'Pending Follow-up', value: 5 },
+    { label: 'Interactions This Month', value: 24, icon: Calendar },
+    { label: 'Student Reachable', value: 145, icon: Users },
+    { label: 'Staff Contributions', value: 6, icon: TrendingUp },
+    { label: 'Pending Follow-up', value: 5, icon: Clock },
   ];
 
   const interactions = [
@@ -35,76 +36,39 @@ const InteractionsPage = () => {
   });
 
   return (
-    <div className="min-h-screen p-8" style={{ backgroundColor: "var(--background)" }}>
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-8 py-10 space-y-8">
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold" style={{ color: "var(--foreground)" }}>
-              Interactions Log
-            </h1>
-            <p className="text-sm mt-2" style={{ color: "var(--muted-foreground)" }}>
-              Track shared outreach activity
-            </p>
+            <h1 className="text-3xl font-bold text-foreground">Interactions Log</h1>
+            <p className="mt-2 text-muted-foreground">Track outreach activity and engagements.</p>
           </div>
-          <Link
-            href="/interactions/new"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all"
-            style={{ backgroundColor: "var(--primary)" }}
-          >
-            <Plus size={20} />
-            Log Interaction
+          <Link href="/interactions/new" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm">
+            <Plus size={18} /> Log Interaction
           </Link>
-        </div>
+        </section>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-lg border p-6"
-              style={{
-                backgroundColor: "var(--card)",
-                borderColor: "var(--border)",
-              }}
-            >
-              <p className="text-sm mb-2" style={{ color: "var(--muted-foreground)" }}>
-                {stat.label}
-              </p>
-              <p className="text-3xl font-bold" style={{ color: "var(--primary)" }}>
-                {stat.value}
-              </p>
-            </div>
-          ))}
-        </div>
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="bg-card border border-border rounded-lg p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-1.5 rounded-md bg-primary/10 text-primary"><Icon size={16} /></div>
+                  <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+              </div>
+            );
+          })}
+        </section>
 
-        {/* Filters */}
-        <div className="flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-64 relative">
-            <Search className="absolute left-3 top-3" size={20} style={{ color: "var(--muted-foreground)" }} />
-            <input
-              type="text"
-              placeholder="Search by partner..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg"
-              style={{
-                backgroundColor: "var(--input)",
-                borderColor: "var(--border)",
-                color: "var(--foreground)",
-              }}
-            />
+        <section className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <input type="text" placeholder="Search by partner name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </div>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 border rounded-lg font-medium cursor-pointer"
-            style={{
-              backgroundColor: "var(--input)",
-              borderColor: "var(--border)",
-              color: "var(--foreground)",
-            }}
-          >
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="px-4 py-2.5 bg-input border border-border rounded-lg text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
             <option value="all">All Types</option>
             <option value="infosession">Infosession</option>
             <option value="meeting">Meeting</option>
@@ -112,126 +76,69 @@ const InteractionsPage = () => {
             <option value="outreach">Outreach</option>
             <option value="interviews">Interviews</option>
           </select>
-          <select
-            value={filterStaff}
-            onChange={(e) => setFilterStaff(e.target.value)}
-            className="px-4 py-2 border rounded-lg font-medium cursor-pointer"
-            style={{
-              backgroundColor: "var(--input)",
-              borderColor: "var(--border)",
-              color: "var(--foreground)",
-            }}
-          >
+          <select value={filterStaff} onChange={(e) => setFilterStaff(e.target.value)} className="px-4 py-2.5 bg-input border border-border rounded-lg text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
             <option value="all">All Staff</option>
             <option value="Sarah Jenkins">Sarah Jenkins</option>
             <option value="James Brown">James Brown</option>
           </select>
-        </div>
+        </section>
 
-        {/* Recent Interactions */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--foreground)" }}>
-            Recent Interactions
-          </h2>
-          <div className="grid gap-4">
-            {filteredInteractions.map((interaction) => (
-              <div
-                key={interaction.id}
-                className="rounded-lg border p-6"
-                style={{
-                  backgroundColor: "var(--card)",
-                  borderColor: "var(--border)",
-                }}
-              >
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Recent Interactions</h2>
+          <div className="space-y-3">
+            {filteredInteractions.map((i) => (
+              <div key={i.id} className="bg-card border border-border rounded-lg p-5 hover:border-primary/20 transition-colors">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
-                      Date
-                    </p>
-                    <p className="font-semibold" style={{ color: "var(--foreground)" }}>
-                      {new Date(interaction.date).toLocaleDateString()}
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Date</p>
+                    <p className="text-sm font-medium text-foreground">{new Date(i.date).toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
-                      Partner
-                    </p>
-                    <p className="font-semibold" style={{ color: "var(--foreground)" }}>
-                      {interaction.partner}
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Partner</p>
+                    <p className="text-sm font-medium text-foreground">{i.partner}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
-                      Type
-                    </p>
-                    <p className="font-semibold" style={{ color: "var(--primary)" }}>
-                      {interaction.type}
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Type</p>
+                    <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">{i.type}</span>
                   </div>
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
-                      Staff
-                    </p>
-                    <p className="font-semibold" style={{ color: "var(--foreground)" }}>
-                      {interaction.staff}
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Staff</p>
+                    <p className="text-sm font-medium text-foreground">{i.staff}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
-                      Students
-                    </p>
-                    <p className="font-semibold" style={{ color: "var(--success)" }}>
-                      {interaction.students}
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Students</p>
+                    <p className="text-lg font-bold text-success">{i.students}</p>
                   </div>
                 </div>
+                <p className="mt-3 pt-3 border-t border-border/50 text-sm text-muted-foreground">{i.notes}</p>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Pending Follow-ups */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2" style={{ color: "var(--foreground)" }}>
-            <AlertCircle size={24} style={{ color: "var(--warning)" }} />
-            Needs Follow-up
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+            <AlertCircle size={16} className="text-warning" /> Needs Follow-up
           </h2>
-          <div className="grid gap-4">
-            {pendingFollowUps.map((followUp) => (
-              <div
-                key={followUp.id}
-                className="rounded-lg border-l-4 p-6"
-                style={{
-                  backgroundColor: "var(--card)",
-                  borderColor: "var(--warning)",
-                  borderLeftWidth: '4px',
-                }}
-              >
-                <div className="flex items-start justify-between">
+          <div className="space-y-3">
+            {pendingFollowUps.map((f) => (
+              <div key={f.id} className="bg-card border-l-4 border-warning rounded-r-lg p-5">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                   <div>
-                    <p className="font-semibold mb-2" style={{ color: "var(--foreground)" }}>
-                      {followUp.interaction}
-                    </p>
-                    <p className="text-sm mb-2" style={{ color: "var(--muted-foreground)" }}>
-                      {followUp.notes}
-                    </p>
-                    <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                      Assigned to: {followUp.owner}
-                    </p>
+                    <p className="font-medium text-foreground">{f.interaction}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{f.notes}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">Assigned to: <span className="font-medium text-foreground">{f.owner}</span></p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold" style={{ color: "var(--warning)" }}>
-                      Due: {new Date(followUp.dueDate).toLocaleDateString()}
-                    </p>
-                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-warning/10 text-warning shrink-0">
+                    <Clock size={12} /> Due {new Date(f.dueDate).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
-};
+}
 
-export default InteractionsPage;

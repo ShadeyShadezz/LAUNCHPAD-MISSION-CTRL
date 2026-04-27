@@ -1,57 +1,31 @@
-'use client';
+"use client";
 
-import { AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "var(--background)" }}>
-      <div className="text-center max-w-md">
-        <div className="flex justify-center mb-6">
-          <div
-            className="p-6 rounded-full"
-            style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            }}
-          >
-            <AlertTriangle size={48} style={{ color: "var(--destructive)" }} />
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-background p-8">
+      <div className="text-center max-w-md space-y-6">
+        <div className="w-24 h-24 mx-auto rounded-2xl bg-muted/50 flex items-center justify-center mb-8">
+          <ArrowLeft size={48} className="text-muted-foreground rotate-180" />
         </div>
-
-        <h1 className="text-5xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
-          404
-        </h1>
-        <p className="text-2xl font-bold mb-4" style={{ color: "var(--foreground)" }}>
-          Page not found
-        </p>
-        <p className="text-sm mb-8" style={{ color: "var(--muted-foreground)" }}>
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-
-        <div className="flex flex-col gap-3">
-          <Link
-            href="javascript:history.back()"
-            className="px-6 py-3 rounded-lg font-semibold transition-all"
-            style={{
-              backgroundColor: "var(--primary)",
-              color: "var(--primary-foreground)",
-            }}
-          >
-            Go Back
-          </Link>
-          <Link
-            href="/dashboard"
-            className="px-6 py-3 rounded-lg font-semibold border transition-all"
-            style={{
-              backgroundColor: "var(--card)",
-              color: "var(--foreground)",
-              borderColor: "var(--border)",
-            }}
-          >
-            Back to Dashboard
-          </Link>
+        <div className="space-y-3">
+          <h1 className="text-4xl font-black tracking-tighter text-foreground italic uppercase">Unknown Mission Signal</h1>
+          <p className="text-lg text-muted-foreground font-bold leading-relaxed">
+            The requested tactical path does not exist in the current grid. 
+            Redirecting to mission control.
+          </p>
         </div>
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-white font-black rounded-2xl shadow-xl hover:shadow-primary/40 hover:-translate-y-1 transition-all active:scale-95 uppercase tracking-widest text-sm"
+        >
+          <ArrowLeft size={18} />
+          Return to Dashboard
+        </Link>
       </div>
     </div>
   );
 }
+

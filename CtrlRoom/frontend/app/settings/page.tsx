@@ -1,15 +1,44 @@
 'use client';
 
 import { Edit2, Trash2, UserPlus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const SettingsPage = () => {
-  const [staffList, setStaffList] = useState([
-    { id: '1', name: 'Sarah Jenkins', role: 'Administrator', title: 'Program Director', accessLevel: 'Full access' },
-    { id: '2', name: 'James Brown', role: 'Program Coordinator', title: 'Community Outreach', accessLevel: 'Add interactions, update partner notes' },
-    { id: '3', name: 'Maria Garcia', role: 'Partnership Manager', title: 'Partnerships Lead', accessLevel: 'Manage partner records' },
-    { id: '4', name: 'David Chen', role: 'Staff User', title: 'Outreach Specialist', accessLevel: 'View shared records, edit own interactions' },
-  ]);
+  const [staffList, setStaffList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStaff();
+  }, []);
+
+  const fetchStaff = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/staff');
+      if (res.ok) {
+        const data = await res.json();
+        setStaffList(data);
+      }
+    } catch (error) {
+      console.error('Error fetching staff:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteStaff = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this staff member?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/staff/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setStaffList(staffList.filter(s => s.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting staff:', error);
+    }
+  };
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -126,7 +155,7 @@ const SettingsPage = () => {
                     className="hover:opacity-75 transition-all"
                   >
                     <td className="px-6 py-4 text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                      {staff.name}
+                      {staff.fullName}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span
@@ -158,6 +187,7 @@ const SettingsPage = () => {
                           <Edit2 size={18} />
                         </button>
                         <button
+                          onClick={() => handleDeleteStaff(staff.id)}
                           className="p-2 rounded-lg transition-all"
                           style={{
                             backgroundColor: 'rgba(239, 68, 68, 0.1)',

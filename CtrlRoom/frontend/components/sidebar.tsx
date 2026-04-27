@@ -1,54 +1,48 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, LogOut, Settings, BarChart3, Shield, Mail } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, Users, Mail, Settings, Shield, LogOut } from 'lucide-react';
+import { clsx } from 'clsx';
+import { useAuth } from '@/app/context/AuthContext';
+
+const navItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/partners', label: 'Partners', icon: Users },
+  { href: '/students', label: 'Students', icon: Users },
+  { href: '/interactions', label: 'Interactions Log', icon: Mail },
+  { href: '/email', label: 'Email Terminal', icon: Mail },
+  { href: '/admin', label: 'Admin Panel', icon: Shield },
+  { href: '/settings', label: 'Settings', icon: Settings },
+];
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const { logout, user } = useAuth();
+  const router = useRouter();
 
-  const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/partners', label: 'Partners Directory', icon: Users },
-    { href: '/students', label: 'Students Directory', icon: Users },
-    { href: '/interactions', label: 'Interactions Log', icon: LogOut },
-    { href: '/email', label: 'Email Composer', icon: Mail },
-    { href: '/integrations/gmail', label: 'Gmail AI', icon: Mail },
-
-    { href: '/admin', label: 'Admin Controls', icon: Shield },
-    { href: '/settings', label: 'Settings', icon: Settings },
-  ];
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
-    <aside
-      className="w-64 min-h-screen shadow-lg overflow-y-auto flex flex-col"
-      style={{ backgroundColor: "var(--sidebar)", color: "var(--sidebar-foreground)" }}
-    >
+    <aside className="w-72 min-h-screen flex flex-col bg-card border-r border-border">
       {/* Logo */}
-      <div className="p-6 border-b" style={{ borderColor: "var(--border)" }}>
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg"
-            style={{
-              backgroundColor: "var(--sidebar-primary)",
-              color: "var(--sidebar-primary-foreground)"
-            }}
-          >
+      <div className="p-6 border-b border-border">
+        <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm bg-primary text-white">
             LMC
           </div>
           <div>
-            <h1 className="font-bold text-lg" style={{ color: "var(--sidebar-foreground)" }}>
-              Launchpad
-            </h1>
-            <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-              Mission Control
-            </p>
+            <h1 className="font-bold text-base text-foreground">Launchpad</h1>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Mission Control</p>
           </div>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-6 space-y-2">
+      <nav className="flex-1 px-3 py-5 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -57,47 +51,42 @@ const Sidebar = () => {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200"
-              style={{
-                backgroundColor: isActive ? "var(--sidebar-primary)" : "transparent",
-                color: isActive ? "var(--sidebar-primary-foreground)" : "var(--sidebar-foreground)",
-              }}
+              className={clsx(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group',
+                isActive
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:bg-muted hover:text-primary'
+              )}
             >
-              <Icon size={20} />
-              <span className="font-medium">{item.label}</span>
+              <Icon size={18} strokeWidth={isActive ? 2.5 : 2} className={clsx(isActive ? 'text-white' : 'group-hover:text-primary')} />
+              <span className={clsx(isActive ? 'text-white' : 'group-hover:text-primary')}>{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: "rgba(14, 165, 164, 0.1)" }}>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400" />
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">Welcome Sarah</p>
-            <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-              Administrator
-            </p>
+      {/* User & Logout */}
+      <div className="p-4 border-t border-border space-y-3">
+        <div className="flex items-center gap-3 px-3 py-2">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-bold">
+            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{user?.name || 'User'}</p>
+            <p className="text-xs text-muted-foreground">{user?.role || 'Staff'}</p>
           </div>
         </div>
-      </div>
-
-      {/* Logout */}
-      <div className="p-4">
-        <Link
-          href="/login"
-          className="w-full px-4 py-2 rounded-lg font-medium text-center transition-all duration-200"
-          style={{
-            backgroundColor: "var(--destructive)",
-            color: "var(--destructive-foreground)"
-          }}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium bg-muted text-destructive hover:bg-destructive hover:text-white transition-colors"
         >
-          Logout
-        </Link>
+          <LogOut size={16} />
+          Sign Out
+        </button>
       </div>
     </aside>
   );
 };
 
 export default Sidebar;
+

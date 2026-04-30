@@ -5,23 +5,23 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { clsx } from 'clsx';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-3 px-6 py-3 rounded font-black transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm',
+  'inline-flex items-center justify-center gap-2 rounded font-medium transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-white hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-1',
-        secondary: 'bg-secondary text-foreground hover:bg-secondary/80 border border-border',
-        outline: 'border-2 border-primary text-primary hover:bg-primary/10',
-        destructive: 'bg-destructive text-white hover:shadow-lg hover:shadow-destructive/40',
+        primary: 'bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow',
+        secondary: 'bg-muted text-foreground hover:bg-muted/80 border border-border',
+        outline: 'border border-primary text-primary hover:bg-primary/5',
+        destructive: 'bg-destructive text-white hover:bg-destructive/90 shadow-sm hover:shadow',
         ghost: 'text-foreground hover:bg-muted/50',
-        success: 'bg-success text-white hover:shadow-lg hover:shadow-success/40',
-        warning: 'bg-warning text-white hover:shadow-lg hover:shadow-warning/40',
+        success: 'bg-success text-white hover:bg-success/90 shadow-sm hover:shadow',
+        warning: 'bg-warning text-white hover:bg-warning/90 shadow-sm hover:shadow',
       },
       size: {
-        sm: 'px-4 py-2 text-xs',
-        md: 'px-6 py-3 text-sm',
-        lg: 'px-8 py-4 text-base',
-        xl: 'px-10 py-5 text-lg',
+        sm: 'px-3 py-1.5 text-xs',
+        md: 'px-4 py-2 text-sm',
+        lg: 'px-5 py-2.5 text-base',
+        xl: 'px-6 py-3 text-base',
       },
       fullWidth: {
         true: 'w-full',

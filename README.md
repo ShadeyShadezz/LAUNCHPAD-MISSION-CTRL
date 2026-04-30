@@ -21,10 +21,5 @@ The application serves as a central hub for tracking and managing the relationsh
 - **Authentication**: NextAuth.js with Google Workspace SSO and email/password support.
 - **AI**: OpenAI API for intelligent email composition.
 
-## Potential Future Updates
-- **Blockchain Integration**: Exploring the use of blockchain for secure, immutable logging of sensitive interactions and verifiable student participation records.
-- **Unique User RGV (Randomly Generated Value)**: Implementation of a unique, non-identifiable RGV for each user to enhance data privacy and provide a secondary layer of unique identification for internal processing.
-- **Advanced Data Tracking**: Enhanced monitoring and analytics of data funneled through the app to track usage patterns, outreach effectiveness, and data flow health.
-
 ---
-*Built for Launchpad Mission Control staff.*
+*Built for Launchpad Philly staff.*

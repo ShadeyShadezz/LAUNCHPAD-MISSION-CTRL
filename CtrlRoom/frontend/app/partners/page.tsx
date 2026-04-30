@@ -2,130 +2,38 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Mail, Edit2, TrendingUp, Trash2 } from 'lucide-react';
+import { Plus, Search, Mail, Edit2, TrendingUp, Trash2, Building2 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { api } from '@/lib/api';
+import { useAuth } from '@/app/context/AuthContext';
+import { Button } from '@/components/Button';
 
 interface Partner {
   id: string;
   organizationName: string;
-  schoolType: string;
-  websiteUrl: string;
-  status: string;
-  courseNumber: number;
-  lastInteraction?: string;
+  schoolType?: string | null;
+  websiteUrl?: string | null;
+  partnerStatus?: string | null;
+  courseNumber?: number | null;
   earlyReleaseForSeniors: boolean;
-  contacts: Array<{ name: string; email: string; title: string }>;
-}
-
-interface PartnerCardProps {
-  partner: Partner;
-  onDelete: (id: string) => void;
-}
-
-function PartnerCard({ partner, onDelete }: PartnerCardProps) {
-  const primaryContact = partner.contacts[0];
-
-  return (
-    <Link key={partner.id} href={`/partners/${partner.id}`} className="group block bg-card border border-border rounded-lg p-6 hover:shadow-sm hover:border-primary/20 transition-all">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
-        <div className="flex-1 space-y-3">
-          <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-              {partner.organizationName}
-            </h3>
-            <span className={clsx(
-              'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border',
-              partner.status === 'Active' ? 'bg-success/10 text-success border-success/20' :
-              partner.status === 'Pending' ? 'bg-warning/10 text-warning border-warning/20' :
-              'bg-muted/10 text-muted-foreground border-muted/20'
-            )}>
-              {partner.status || 'N/A'}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-            <span className="bg-muted/50 px-2.5 py-1 rounded-md">{partner.schoolType}</span>
-            <span className="bg-muted/50 px-2.5 py-1 rounded-md">Course #{partner.courseNumber}</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-xs font-medium uppercase text-muted-foreground mb-1">Primary Contact</p>
-              <p className="text-sm font-medium text-foreground">{primaryContact?.name || 'No Contact'}</p>
-              <p className="text-xs text-muted-foreground">{primaryContact?.title || 'Unknown'}</p>
-            </div>
-            <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-xs font-medium uppercase text-muted-foreground mb-1">Last Interaction</p>
-              <p className="text-sm font-medium text-foreground">
-                {partner.lastInteraction ? new Date(partner.lastInteraction).toLocaleDateString() : 'No interactions'}
-              </p>
-              {partner.earlyReleaseForSeniors && (
-                <p className="text-xs text-success mt-1">Early Release Ready</p>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex md:flex-col gap-2 shrink-0">
-          {primaryContact?.email && (
-            <button
-              onClick={(e) => { e.preventDefault(); window.location.href = `mailto:${primaryContact.email}`; }}
-              className="p-2.5 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition-colors"
-              title="Send email"
-            >
-              <Mail size={18} />
-            </button>
-          )}
-          <Link
-            href={`/partners/${partner.id}/edit`}
-            onClick={(e) => e.stopPropagation()}
-            className="p-2.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
-            title="Edit partner"
-          >
-            <Edit2 size={18} />
-          </Link>
-          <button
-            onClick={(e) => { e.preventDefault(); onDelete(partner.id); }}
-            className="p-2.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors"
-            title="Delete partner"
-          >
-            <Trash2 size={18} />
-          </button>
-          <Link
-            href={`/email?partnerId=${partner.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="p-2.5 rounded-lg bg-success/10 text-success hover:bg-success hover:text-white transition-colors"
-            title="View interactions"
-          >
-            <TrendingUp size={18} />
-          </Link>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function LoadingState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4">
-      <div className="w-10 h-10 border-3 border-primary/20 border-t-primary rounded-full animate-spin" />
-      <p className="text-muted-foreground text-sm font-medium">Loading partnerships...</p>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="rounded-lg border-2 border-dashed border-border p-16 text-center">
-      <Search size={32} className="mx-auto text-muted-foreground mb-4" />
-      <p className="text-lg font-semibold text-foreground">No matching partners</p>
-      <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or add a new partner.</p>
-    </div>
-  );
+  contacts: Array<{ id: string; name: string; email: string; title?: string | null }>;
 }
 
 export default function PartnersPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const { user } = useAuth();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    organizationName: '',
+    schoolType: '',
+    websiteUrl: '',
+    courseNumber: '',
+    earlyReleaseForSeniors: false,
+    contacts: [{ name: '', email: '', title: '' }],
+  });
 
   useEffect(() => {
     fetchPartners();
@@ -134,9 +42,7 @@ export default function PartnersPage() {
   const fetchPartners = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/partners');
-      if (!res.ok) throw new Error('Failed to fetch partners');
-      const data = await res.json();
+      const data = await api.getPartners();
       setPartners(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching partners:', error);
@@ -146,18 +52,319 @@ export default function PartnersPage() {
     }
   };
 
-  const handleDeletePartner = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this partner?')) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.id) {
+      alert('User not authenticated');
+      return;
+    }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/partners/${id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        setPartners(prev => prev.filter(p => p.id !== id));
+      if (editingId) {
+        await api.updatePartner(editingId, {
+          organizationName: formData.organizationName,
+          schoolType: formData.schoolType,
+          websiteUrl: formData.websiteUrl,
+          courseNumber: formData.courseNumber ? parseInt(formData.courseNumber) : null,
+          earlyReleaseForSeniors: formData.earlyReleaseForSeniors,
+          contacts: formData.contacts,
+        });
       } else {
-        console.error('Failed to delete partner');
+        await api.createPartner({
+          organizationName: formData.organizationName,
+          schoolType: formData.schoolType,
+          websiteUrl: formData.websiteUrl,
+          courseNumber: formData.courseNumber ? parseInt(formData.courseNumber) : null,
+          earlyReleaseForSeniors: formData.earlyReleaseForSeniors,
+          createdById: user.id,
+          contacts: { create: formData.contacts },
+        });
       }
+      setShowForm(false);
+      setEditingId(null);
+      resetForm();
+      await fetchPartners();
+    } catch (error: any) {
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      organizationName: '',
+      schoolType: '',
+      websiteUrl: '',
+      courseNumber: '',
+      earlyReleaseForSeniors: false,
+      contacts: [{ name: '', email: '', title: '' }],
+    });
+  };
+
+  const handleEdit = (partner: Partner) => {
+    setFormData({
+      organizationName: partner.organizationName,
+      schoolType: partner.schoolType || '',
+      websiteUrl: partner.websiteUrl || '',
+      courseNumber: partner.courseNumber?.toString() || '',
+      earlyReleaseForSeniors: partner.earlyReleaseForSeniors,
+      contacts: partner.contacts.map(c => ({
+        name: c.name,
+        email: c.email,
+        title: c.title || '',
+      })),
+    });
+    setEditingId(partner.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this partner?')) return;
+    try {
+      await api.deletePartner(id);
+      await fetchPartners();
+    } catch (error: any) {
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const filteredPartners = partners.filter(p =>
+    p.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.contacts.some(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-10 h-10 border-3 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Partners Directory</h1>
+            <p className="mt-1 text-muted-foreground">Manage school and organizational partnerships.</p>
+          </div>
+          <Button
+            onClick={() => {
+              setEditingId(null);
+              resetForm();
+              setShowForm(!showForm);
+            }}
+            className={showForm ? 'bg-slate-600 hover:bg-slate-700' : 'bg-cyan-500 hover:bg-cyan-600'}
+          >
+            <Plus size={18} />
+            {showForm ? 'Cancel' : 'Add Partner'}
+          </Button>
+        </div>
+
+        {/* Form */}
+        {showForm && (
+          <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
+              {editingId ? 'Edit Partner' : 'Add New Partner'}
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Organization Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Tech Academy High School"
+                    value={formData.organizationName}
+                    onChange={(e) => setFormData({...formData, organizationName: e.target.value})}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">School Type</label>
+                  <input
+                    type="text"
+                    placeholder="High School / Vocational"
+                    value={formData.schoolType}
+                    onChange={(e) => setFormData({...formData, schoolType: e.target.value})}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Website URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com"
+                    value={formData.websiteUrl}
+                    onChange={(e) => setFormData({...formData, websiteUrl: e.target.value})}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Course Number</label>
+                  <input
+                    type="number"
+                    placeholder="101"
+                    value={formData.courseNumber}
+                    onChange={(e) => setFormData({...formData, courseNumber: e.target.value})}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="earlyRelease"
+                  checked={formData.earlyReleaseForSeniors}
+                  onChange={(e) => setFormData({...formData, earlyReleaseForSeniors: e.target.checked})}
+                  className="w-4 h-4 rounded border-slate-300"
+                />
+                <label htmlFor="earlyRelease" className="text-sm font-medium text-foreground">
+                  Early Release Program for Seniors
+                </label>
+              </div>
+
+              {/* Contacts */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">Primary Contact</label>
+                {formData.contacts.map((contact, idx) => (
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      placeholder="Contact name"
+                      value={contact.name}
+                      onChange={(e) => {
+                        const updated = [...formData.contacts];
+                        updated[idx].name = e.target.value;
+                        setFormData({...formData, contacts: updated});
+                      }}
+                      className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                    <input
+                      type="email"
+                      placeholder="contact@example.com"
+                      value={contact.email}
+                      onChange={(e) => {
+                        const updated = [...formData.contacts];
+                        updated[idx].email = e.target.value;
+                        setFormData({...formData, contacts: updated});
+                      }}
+                      className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Title"
+                      value={contact.title}
+                      onChange={(e) => {
+                        const updated = [...formData.contacts];
+                        updated[idx].title = e.target.value;
+                        setFormData({...formData, contacts: updated});
+                      }}
+                      className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3">
+                <Button type="submit" className="bg-cyan-500 hover:bg-cyan-600 text-white">
+                  {editingId ? 'Update Partner' : 'Add Partner'}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingId(null);
+                  }}
+                  className="bg-slate-200 hover:bg-slate-300 text-foreground"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-3 text-muted-foreground" size={18} />
+          <input
+            type="text"
+            placeholder="Search partners by name or contact..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          />
+        </div>
+
+        {/* Partners Grid */}
+        <div className="grid gap-4">
+          {filteredPartners.length === 0 ? (
+            <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
+              <Building2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <p className="text-muted-foreground">No partners found</p>
+            </div>
+          ) : (
+            filteredPartners.map((partner) => (
+              <div key={partner.id} className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground">{partner.organizationName}</h3>
+                    {partner.schoolType && (
+                      <p className="text-sm text-muted-foreground mt-1">{partner.schoolType}</p>
+                    )}
+                    {partner.contacts.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {partner.contacts.map((contact) => (
+                          <div key={contact.id} className="text-sm">
+                            <p className="font-medium text-foreground">{contact.name}</p>
+                            <p className="text-muted-foreground">{contact.title || 'Contact'} • {contact.email}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {partner.contacts[0]?.email && (
+                      <Link href={`/email?partnerId=${partner.id}`}>
+                        <Button className="bg-cyan-500 hover:bg-cyan-600 text-white">
+                          <Mail size={16} />
+                          Email
+                        </Button>
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => handleEdit(partner)}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-foreground rounded-lg transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                    >
+                      <Edit2 size={16} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(partner.id)}
+                      className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+      setPartners(prev => prev.filter(p => p.id !== id));
     } catch (error) {
       console.error('Error deleting partner:', error);
     }
@@ -175,8 +382,8 @@ export default function PartnersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-8 py-10 space-y-8">
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-12 py-12 space-y-10">
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-5">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Partners Directory</h1>
             <p className="mt-2 text-muted-foreground">Manage partnerships and track interactions.</p>
@@ -186,7 +393,7 @@ export default function PartnersPage() {
           </Link>
         </section>
 
-        <section className="flex flex-col sm:flex-row gap-4">
+        <section className="flex flex-col sm:flex-row gap-5">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input
@@ -209,7 +416,7 @@ export default function PartnersPage() {
           </select>
         </section>
 
-        <section className="grid gap-5">
+        <section className="grid gap-6">
           {loading ? (
             <LoadingState />
           ) : filteredPartners.length > 0 ? (

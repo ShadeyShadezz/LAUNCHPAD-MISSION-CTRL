@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
+import { api } from '@/lib/api';
 
 interface Contact {
   name: string;
@@ -49,20 +50,8 @@ export default function NewPartnerPage() {
         })),
       };
 
-      const res = await fetch('http://localhost:5000/api/partners', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(partnerData),
-      });
-
-      if (res.ok) {
-        router.push('/partners');
-      } else {
-        console.error('Failed to create partner');
-        alert('Failed to create partner. Please try again.');
-      }
+      await api.createPartner(partnerData);
+      router.push('/partners');
     } catch (error) {
       console.error('Error creating partner:', error);
       alert(error instanceof Error ? error.message : 'Failed to create partner. Please try again.');

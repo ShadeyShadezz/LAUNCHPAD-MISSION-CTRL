@@ -40,7 +40,7 @@ export default function InteractionsPage() {
       <div className="max-w-7xl mx-auto px-8 py-10 space-y-8">
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Interactions Log</h1>
+            <h1 className="text-2xl font-bold text-foreground">Interactions Log</h1>
             <p className="mt-2 text-muted-foreground">Track outreach activity and engagements.</p>
           </div>
           <Link href="/interactions/new" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm">

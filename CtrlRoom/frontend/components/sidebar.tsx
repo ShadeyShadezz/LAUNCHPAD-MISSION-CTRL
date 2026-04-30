@@ -27,22 +27,22 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-72 min-h-screen flex flex-col bg-card border-r border-border">
+    <aside className="w-64 min-h-screen flex flex-col bg-slate-700 border-r border-slate-600">
       {/* Logo */}
-      <div className="p-6 border-b border-border">
+      <div className="p-4 border-b border-slate-600">
         <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm bg-primary text-white">
+          <div className="w-9 h-9 rounded-md flex items-center justify-center font-semibold text-sm bg-cyan-500 text-white">
             LMC
           </div>
-          <div>
-            <h1 className="font-bold text-base text-foreground">Launchpad</h1>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Mission Control</p>
+          <div className="min-w-0">
+            <h1 className="font-semibold text-sm text-white leading-tight">Launchpad</h1>
+            <p className="text-xs text-slate-300 mt-0.5">Mission Control</p>
           </div>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-5 space-y-1">
+      <nav className="flex-1 px-2 py-4 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -52,33 +52,33 @@ const Sidebar = () => {
               key={item.href}
               href={item.href}
               className={clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group',
+                'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors font-medium',
                 isActive
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-muted-foreground hover:bg-muted hover:text-primary'
+                  ? 'bg-cyan-500 text-white'
+                  : 'text-slate-300 hover:bg-slate-600 hover:text-cyan-400'
               )}
             >
-              <Icon size={18} strokeWidth={isActive ? 2.5 : 2} className={clsx(isActive ? 'text-white' : 'group-hover:text-primary')} />
-              <span className={clsx(isActive ? 'text-white' : 'group-hover:text-primary')}>{item.label}</span>
+              <Icon size={18} strokeWidth={1.5} />
+              <span>{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
       {/* User & Logout */}
-      <div className="p-4 border-t border-border space-y-3">
+      <div className="p-3 border-t border-slate-600 space-y-3">
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-bold">
-            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+          <div className="w-8 h-8 rounded-md bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+            {user?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{user?.name || 'User'}</p>
-            <p className="text-xs text-muted-foreground">{user?.role || 'Staff'}</p>
+            <p className="text-sm font-medium text-white truncate">{user?.email?.split('@')[0] || 'User'}</p>
+            <p className="text-xs text-slate-400">Staff</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium bg-muted text-destructive hover:bg-destructive hover:text-white transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-slate-600 text-slate-100 hover:bg-red-600 hover:text-white transition-colors"
         >
           <LogOut size={16} />
           Sign Out

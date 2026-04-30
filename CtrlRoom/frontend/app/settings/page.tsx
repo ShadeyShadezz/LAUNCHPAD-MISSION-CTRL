@@ -2,6 +2,7 @@
 
 import { Edit2, Trash2, UserPlus } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 
 const SettingsPage = () => {
   const [staffList, setStaffList] = useState<any[]>([]);
@@ -14,11 +15,8 @@ const SettingsPage = () => {
   const fetchStaff = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/staff');
-      if (res.ok) {
-        const data = await res.json();
-        setStaffList(data);
-      }
+      const data = await api.getStaff();
+      setStaffList(data);
     } catch (error) {
       console.error('Error fetching staff:', error);
     } finally {
@@ -29,12 +27,8 @@ const SettingsPage = () => {
   const handleDeleteStaff = async (id: string) => {
     if (!confirm('Are you sure you want to delete this staff member?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/staff/${id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        setStaffList(staffList.filter(s => s.id !== id));
-      }
+      await api.deleteStaff(id);
+      setStaffList(staffList.filter(s => s.id !== id));
     } catch (error) {
       console.error('Error deleting staff:', error);
     }
@@ -47,7 +41,7 @@ const SettingsPage = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
             Settings
           </h1>
           <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>

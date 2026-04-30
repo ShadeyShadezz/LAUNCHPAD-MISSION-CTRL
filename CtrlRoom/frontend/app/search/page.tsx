@@ -59,7 +59,7 @@ const SearchPage = () => {
     <div className="min-h-screen p-8" style={{ backgroundColor: 'var(--background)' }}>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--foreground)' }}>
             Global Search
           </h1>
           <div className="relative">

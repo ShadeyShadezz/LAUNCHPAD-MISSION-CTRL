@@ -66,7 +66,7 @@ const ReportsPage = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--foreground)' }}>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--foreground)' }}>
             Reports
           </h1>
           <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
@@ -92,7 +92,7 @@ const ReportsPage = () => {
                     <p className="text-sm mb-1" style={{ color: 'var(--muted-foreground)' }}>
                       {card.title}
                     </p>
-                    <p className="text-3xl font-bold mb-1" style={{ color: card.color }}>
+                    <p className="text-2xl font-bold mb-1" style={{ color: card.color }}>
                       {card.metric}
                     </p>
                     <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>

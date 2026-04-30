@@ -20,18 +20,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Dummy test account
-const DUMMY_ACCOUNT = {
-  email: 'test@launchpad.com',
-  password: 'password123',
-  user: {
-    id: '1',
-    email: 'test@launchpad.com',
-    name: 'Sarah Jenkins',
-    role: 'Administrator',
-    accessLevel: 'Full Access',
-  },
-};
+// Test account credentials (now active)
+// Email: test@launchpad.com
+// Password: password123
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -54,15 +45,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
-      // Simulate API call with dummy account
-      if (email === DUMMY_ACCOUNT.email && password === DUMMY_ACCOUNT.password) {
-        const userData = DUMMY_ACCOUNT.user;
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('authToken', 'dummy-token-' + Date.now());
-      } else {
-        throw new Error('Invalid credentials. Try: test@launchpad.com / password123');
+      // Check for test account first
+      if (email === 'test@launchpad.com' && password === 'password123') {
+        const testUser = {
+          id: 'test-user-id',
+          email: 'test@launchpad.com',
+          name: 'Test User',
+          role: 'STAFF_USER',
+          accessLevel: 'FULL'
+        };
+        setUser(testUser);
+        localStorage.setItem('user', JSON.stringify(testUser));
+        localStorage.setItem('authToken', 'test-token');
+        setIsLoading(false);
+        return;
       }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
+      }
+
+      const data = await response.json();
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('authToken', data.token);
     } finally {
       setIsLoading(false);
     }

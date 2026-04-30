@@ -2,39 +2,39 @@
 
 :root {
   /* Base colors */
-  --background: #f7fafc;
-  --foreground: #1f2937;
-  --border: #00000014;
+  --background: #f5f7fa;
+  --foreground: #1a1d23;
+  --border: #e2e8f0;
   --input: #ffffff;
 
-  /* Primary action color (teal/cyan) */
-  --primary: #0ea5a4;
+  /* Primary action color (bright cyan-blue) */
+  --primary: #0891b2;
   --primary-foreground: #ffffff;
 
   /* Secondary / muted backgrounds */
-  --secondary: #eff6ff;
-  --secondary-foreground: #1e3a8a;
+  --secondary: #f0f4ff;
+  --secondary-foreground: #1e40af;
   --muted: #f1f5f9;
-  --muted-foreground: #9ca3af;
+  --muted-foreground: #64748b;
 
   /* Status colors */
   --success: #10b981;
   --success-foreground: #ffffff;
-  --accent: #f97316;
+  --accent: #f59e0b;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --warning: #f59e0b;
-  --warning-foreground: #1f2937;
+  --warning-foreground: #ffffff;
 
   /* Card and surface colors */
   --card: #ffffff;
   --card-foreground: #111827;
 
-  /* Sidebar specific */
-  --sidebar: #f3f4f6;
-  --sidebar-foreground: #374151;
-  --sidebar-primary: #0ea5a4;
+  /* Sidebar specific (dark) */
+  --sidebar: #2d3748;
+  --sidebar-foreground: #cbd5e1;
+  --sidebar-primary: #0891b2;
   --sidebar-primary-foreground: #ffffff;
 
   /* Border radius */
@@ -43,7 +43,7 @@
   --radius-lg: 8px;
   --radius-xl: 12px;
 
-  /* 8px spacing system */
+  /* Spacing system */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -52,13 +52,32 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
-  --space-12: 48px;
 
-  /* Typography */
+  /* Typography - Clean scale */
   --font-family-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Font sizes */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* Line heights */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -99,21 +118,56 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-family-body);
-  line-height: 1.5;
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography headings */
+h1 {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
+}
+
+h4, h5, h6 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-normal);
+}
+
+p {
+  line-height: var(--leading-relaxed);
 }
 
 a {
   color: var(--primary);
   text-decoration: none;
+  transition: color 150ms ease;
 }
 
 a:hover {
+  color: var(--foreground);
   text-decoration: underline;
 }
 
 button {
   font-family: inherit;
+  font-size: inherit;
 }
 

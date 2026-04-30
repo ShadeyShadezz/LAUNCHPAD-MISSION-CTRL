@@ -1,11 +1,15 @@
-# Task Progress
+# Fix Dashboard Fetch & Backend Error Handling
 
-**Approved Plan Breakdown:**
-- [x] Fix all compilation/runtime errors (complete).
-- [x] 1. Professional buttons on pages (dashboard, partners, students, interactions).
-- [x] 2. Frontend .env.local (NEXT_PUBLIC_GOOGLE_CLIENT_ID).
-- [x] 3. Email send function deps installed.
-- [ ] 4. Real DB auth (register/login, bcrypt, Google OAuth).
-
-**Next: 3. Email send function + 4. Real DB auth.**
+- [x] Analyze error and gather context
+- [x] Fix `CtrlRoom/frontend/app/dashboard/page.tsx`
+  - [x] Refactor `fetchDashboardData` with `useCallback`, define before `useEffect`
+  - [x] Update `useEffect` dependency array and add `AbortController` cleanup
+  - [x] Improve JSON response handling
+  - [x] Render `recentInteractions` data
+- [x] Fix `CtrlRoom/backend/index.js`
+  - [x] Wrap `/api/staff/dashboard` in `try-catch`
+  - [x] Return JSON error on failure
+- [x] Fix `CtrlRoom/frontend/next.config.ts`
+  - [x] Change `module.exports` to `export default`
+- [x] Verify fixes
 

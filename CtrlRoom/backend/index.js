@@ -18,6 +18,25 @@ app.use(bodyParser.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret-supersecret-supersecret';
 
+// Middleware to authenticate JWT
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Access token required' });
+
+  jwt.verify(token, JWT_SECRET, async (err, decoded) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    try {
+      const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+      if (!user) return res.status(401).json({ error: 'User not found' });
+      req.user = user;
+      next();
+    } catch (error) {
+      res.status(500).json({ error: 'Authentication error' });
+    }
+  });
+};
+
 const transporter = nodemailer.createTransporter({
   service: 'gmail',
   auth: {
@@ -126,107 +145,500 @@ app.post('/api/email/send', async (req, res) => {
 });
 
 // Partners Endpoints
-app.get('/api/partners', async (req, res) => {
-  const partners = await prisma.partner.findMany({
-    include: { contacts: true }
-  });
-  res.json(partners);
+app.get('/api/partners', authenticateToken, async (req, res) => {
+  try {
+    const partners = await prisma.partner.findMany({
+      include: { contacts: true }
+    });
+    res.json(partners);
+  } catch (error) {
+    console.error('Error fetching partners:', error);
+    res.status(500).json({ error: 'Failed to fetch partners' });
+  }
 });
 
-app.get('/api/partners/:id', async (req, res) => {
+app.get('/api/partners/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const partner = await prisma.partner.findUnique({
-    where: { id },
-    include: { contacts: true, interactions: true }
-  });
-  res.json(partner);
+  try {
+    const partner = await prisma.partner.findUnique({
+      where: { id },
+      include: { contacts: true, interactions: true }
+    });
+    res.json(partner);
+  } catch (error) {
+    console.error('Error fetching partner:', error);
+    res.status(500).json({ error: 'Failed to fetch partner' });
+  }
 });
 
-app.post('/api/partners', async (req, res) => {
+app.post('/api/partners', authenticateToken, async (req, res) => {
   const { organizationName, websiteUrl, schoolType, createdById, contacts } = req.body;
-  const partner = await prisma.partner.create({
-    data: {
-      organizationName,
-      websiteUrl,
-      schoolType,
-      createdBy: { connect: { id: createdById } },
-      contacts: {
-        create: contacts
+  try {
+    const partner = await prisma.partner.create({
+      data: {
+        organizationName,
+        websiteUrl,
+        schoolType,
+        createdBy: { connect: { id: createdById } },
+        contacts: {
+          create: contacts
+        }
       }
-    }
-  });
-  res.json(partner);
+    });
+
+    // Log the creation
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'ADDED',
+        targetType: 'partner',
+        targetId: partner.id,
+        targetName: partner.organizationName
+      }
+    });
+
+    res.json(partner);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Partner creation failed' });
+  }
+});
+
+app.put('/api/partners/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { organizationName, websiteUrl, schoolType, contacts } = req.body;
+  try {
+    const partner = await prisma.partner.update({
+      where: { id },
+      data: {
+        organizationName,
+        websiteUrl,
+        schoolType,
+        contacts: {
+          deleteMany: {},
+          create: contacts
+        }
+      },
+      include: { contacts: true }
+    });
+
+    // Log the update
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'EDITED',
+        targetType: 'partner',
+        targetId: partner.id,
+        targetName: partner.organizationName
+      }
+    });
+
+    res.json(partner);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Partner update failed' });
+  }
+});
+
+app.delete('/api/partners/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const partner = await prisma.partner.findUnique({ where: { id } });
+    if (!partner) return res.status(404).json({ error: 'Partner not found' });
+
+    // Log the deletion
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'DELETED',
+        targetType: 'partner',
+        targetId: partner.id,
+        targetName: partner.organizationName
+      }
+    });
+
+    await prisma.partner.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Partner deletion failed' });
+  }
+});
+
+// Staff Endpoints
+app.get('/api/staff', authenticateToken, async (req, res) => {
+  try {
+    const staff = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        title: true,
+        accessLevel: true,
+        lastLogin: true,
+        createdAt: true
+      }
+    });
+    res.json(staff);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch staff' });
+  }
+});
+
+app.post('/api/staff', authenticateToken, async (req, res) => {
+  const { email, fullName, role = 'STAFF_USER', title, accessLevel, password } = req.body;
+  try {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) return res.status(400).json({ error: 'User already exists' });
+
+    const passwordHash = await bcrypt.hash(password || 'DefaultPassword123!', 12);
+    
+    const user = await prisma.user.create({
+      data: {
+        email,
+        fullName,
+        role,
+        title,
+        accessLevel,
+        passwordHash
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        title: true,
+        accessLevel: true,
+        createdAt: true
+      }
+    });
+
+    // Log the creation
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'ADDED',
+        targetType: 'user',
+        targetId: user.id,
+        targetName: user.fullName
+      }
+    });
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error creating staff:', error);
+    res.status(500).json({ error: 'Failed to create staff member' });
+  }
+});
+
+app.put('/api/staff/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { fullName, role, title, accessLevel } = req.body;
+  try {
+    const user = await prisma.user.update({
+      where: { id },
+      data: {
+        fullName,
+        role,
+        title,
+        accessLevel
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        title: true,
+        accessLevel: true,
+        lastLogin: true,
+        createdAt: true
+      }
+    });
+
+    // Log the update
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'EDITED',
+        targetType: 'user',
+        targetId: user.id,
+        targetName: user.fullName
+      }
+    });
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error updating staff:', error);
+    res.status(500).json({ error: 'Failed to update staff member' });
+  }
+});
+
+app.delete('/api/staff/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Log the deletion
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'DELETED',
+        targetType: 'user',
+        targetId: user.id,
+        targetName: user.fullName
+      }
+    });
+
+    await prisma.user.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete staff member' });
+  }
 });
 
 // Interactions Endpoints
-app.get('/api/interactions', async (req, res) => {
-  const interactions = await prisma.interaction.findMany({
-    include: { partner: true, staff: true }
-  });
-  res.json(interactions);
+app.get('/api/interactions', authenticateToken, async (req, res) => {
+  try {
+    const interactions = await prisma.interaction.findMany({
+      include: { partner: true, staff: true }
+    });
+    res.json(interactions);
+  } catch (error) {
+    console.error('Error fetching interactions:', error);
+    res.status(500).json({ error: 'Failed to fetch interactions' });
+  }
 });
 
-app.post('/api/interactions', async (req, res) => {
+app.post('/api/interactions', authenticateToken, async (req, res) => {
   const { partnerId, interactionType, staffId, date, studentCount, sharedNotes, needsFollowup, followupDueDate } = req.body;
-  const interaction = await prisma.interaction.create({
-    data: {
-      partner: { connect: { id: partnerId } },
-      interactionType,
-      staff: { connect: { id: staffId } },
-      date: new Date(date),
-      studentCount,
-      sharedNotes,
-      needsFollowup,
-      followupDueDate: followupDueDate ? new Date(followupDueDate) : null
-    }
-  });
-  res.json(interaction);
+  try {
+    const interaction = await prisma.interaction.create({
+      data: {
+        partner: { connect: { id: partnerId } },
+        interactionType,
+        staff: { connect: { id: staffId } },
+        date: new Date(date),
+        studentCount,
+        sharedNotes,
+        needsFollowup,
+        followupDueDate: followupDueDate ? new Date(followupDueDate) : null
+      },
+      include: { partner: true }
+    });
+
+    // Log the creation
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'ADDED',
+        targetType: 'interaction',
+        targetId: interaction.id,
+        targetName: `Interaction with ${interaction.partner.organizationName || 'Unknown Partner'}`
+      }
+    });
+
+    res.json(interaction);
+  } catch (error) {
+    console.error('Error creating interaction:', error);
+    res.status(500).json({ error: 'Failed to create interaction' });
+  }
+});
+
+app.put('/api/interactions/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { interactionType, date, studentCount, sharedNotes, needsFollowup, followupDueDate } = req.body;
+  try {
+    const interaction = await prisma.interaction.update({
+      where: { id },
+      data: {
+        interactionType,
+        date: new Date(date),
+        studentCount,
+        sharedNotes,
+        needsFollowup,
+        followupDueDate: followupDueDate ? new Date(followupDueDate) : null
+      },
+      include: { partner: true }
+    });
+
+    // Log the update
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'EDITED',
+        targetType: 'interaction',
+        targetId: interaction.id,
+        targetName: `Interaction with ${interaction.partner.organizationName}`
+      }
+    });
+
+    res.json(interaction);
+  } catch (error) {
+    console.error('Error updating interaction:', error);
+    res.status(500).json({ error: 'Failed to update interaction' });
+  }
+});
+
+app.delete('/api/interactions/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const interaction = await prisma.interaction.findUnique({ 
+      where: { id },
+      include: { partner: true }
+    });
+    if (!interaction) return res.status(404).json({ error: 'Interaction not found' });
+
+    // Log the deletion
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'DELETED',
+        targetType: 'interaction',
+        targetId: interaction.id,
+        targetName: `Interaction with ${interaction.partner.organizationName}`
+      }
+    });
+
+    await prisma.interaction.delete({ where: { id } });
+    res.json({ success: true, message: 'Interaction deleted' });
+  } catch (error) {
+    console.error('Error deleting interaction:', error);
+    res.status(500).json({ error: 'Failed to delete interaction' });
+  }
 });
 
 // Students Endpoints
-app.get('/api/students', async (req, res) => {
-  const students = await prisma.student.findMany({
-    include: { partner: true }
-  });
-  res.json(students);
+app.get('/api/students', authenticateToken, async (req, res) => {
+  try {
+    const students = await prisma.student.findMany({
+      include: { partner: true }
+    });
+    res.json(students);
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    res.status(500).json({ error: 'Failed to fetch students' });
+  }
 });
 
-app.post('/api/students', async (req, res) => {
+app.post('/api/students', authenticateToken, async (req, res) => {
   const { fullName, email, partnerId, status, cohort, earlyReleaseEligible, addedById } = req.body;
-  const student = await prisma.student.create({
-    data: {
-      fullName,
-      email,
-      partner: { connect: { id: partnerId } },
-      status,
-      cohort,
-      earlyReleaseEligible,
-      addedBy: { connect: { id: addedById } }
-    }
-  });
-  res.json(student);
+  try {
+    const student = await prisma.student.create({
+      data: {
+        fullName,
+        email,
+        partner: { connect: { id: partnerId } },
+        status,
+        cohort,
+        earlyReleaseEligible,
+        addedBy: { connect: { id: addedById } }
+      }
+    });
+
+    // Log the creation
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'ADDED',
+        targetType: 'student',
+        targetId: student.id,
+        targetName: student.fullName
+      }
+    });
+
+    res.json(student);
+  } catch (error) {
+    console.error('Error creating student:', error);
+    res.status(500).json({ error: 'Failed to create student' });
+  }
+});
+
+app.put('/api/students/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { fullName, email, status, cohort, earlyReleaseEligible } = req.body;
+  try {
+    const student = await prisma.student.update({
+      where: { id },
+      data: {
+        fullName,
+        email,
+        status,
+        cohort,
+        earlyReleaseEligible
+      },
+      include: { partner: true }
+    });
+
+    // Log the update
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'EDITED',
+        targetType: 'student',
+        targetId: student.id,
+        targetName: student.fullName
+      }
+    });
+
+    res.json(student);
+  } catch (error) {
+    console.error('Error updating student:', error);
+    res.status(500).json({ error: 'Failed to update student' });
+  }
+});
+
+app.delete('/api/students/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const student = await prisma.student.findUnique({ where: { id } });
+    if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    // Log the deletion
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'DELETED',
+        targetType: 'student',
+        targetId: student.id,
+        targetName: student.fullName
+      }
+    });
+
+    await prisma.student.delete({ where: { id } });
+    res.json({ success: true, message: 'Student deleted' });
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    res.status(500).json({ error: 'Failed to delete student' });
+  }
 });
 
 // Dashboard/Stats
-app.get('/api/staff/dashboard', async (req, res) => {
-  const recentInteractions = await prisma.interaction.findMany({
-    take: 5,
-    orderBy: { date: 'desc' },
-    include: { partner: true, staff: true }
-  });
-  
-  const pendingFollowups = await prisma.interaction.count({
-    where: { needsFollowup: true }
-  });
+app.get('/api/staff/dashboard', authenticateToken, async (req, res) => {
+  try {
+    const recentInteractions = await prisma.interaction.findMany({
+      take: 5,
+      orderBy: { date: 'desc' },
+      include: { partner: true, staff: true }
+    });
+    
+    const pendingFollowups = await prisma.interaction.count({
+      where: { needsFollowup: true }
+    });
 
-  res.json({
-    recentInteractions,
-    pendingFollowups
-  });
+    res.json({
+      recentInteractions,
+      pendingFollowups
+    });
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    res.status(500).json({ error: 'Failed to load dashboard data' });
+  }
 });
 
 // AI Email Generation
-app.post('/api/ai/generate-email', async (req, res) => {
+app.post('/api/ai/generate-email', authenticateToken, async (req, res) => {
   try {
     const { userPrompt, partnerId } = req.body;
     
@@ -262,22 +674,44 @@ app.post('/api/ai/generate-email', async (req, res) => {
 });
 
 // Email Drafts
-app.get('/api/email-drafts', async (req, res) => {
+app.get('/api/email-drafts', authenticateToken, async (req, res) => {
   const { staffId } = req.query;
-  const drafts = await prisma.emailDraft.findMany({
-    where: { staffId },
-    include: { partner: true },
-    orderBy: { createdAt: 'desc' }
-  });
-  res.json(drafts);
+  try {
+    const drafts = await prisma.emailDraft.findMany({
+      where: { staffId },
+      include: { partner: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(drafts);
+  } catch (error) {
+    console.error('Error fetching email drafts:', error);
+    res.status(500).json({ error: 'Failed to fetch email drafts' });
+  }
 });
 
-app.post('/api/email-drafts', async (req, res) => {
-  const draft = await prisma.emailDraft.create({
-    data: req.body,
-    include: { partner: true }
-  });
-  res.json(draft);
+app.post('/api/email-drafts', authenticateToken, async (req, res) => {
+  try {
+    const draft = await prisma.emailDraft.create({
+      data: req.body,
+      include: { partner: true }
+    });
+
+    // Log the creation
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'ADDED',
+        targetType: 'emailDraft',
+        targetId: draft.id,
+        targetName: `Email draft to ${draft.partner.organizationName || 'Unknown Partner'}`
+      }
+    });
+
+    res.json(draft);
+  } catch (error) {
+    console.error('Error creating email draft:', error);
+    res.status(500).json({ error: 'Failed to create email draft' });
+  }
 });
 
 app.listen(PORT, () => {

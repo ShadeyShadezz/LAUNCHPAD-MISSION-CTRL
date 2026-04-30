@@ -5,23 +5,22 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-8">
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <div className="text-center max-w-md space-y-6">
-        <div className="w-24 h-24 mx-auto rounded-2xl bg-muted/50 flex items-center justify-center mb-8">
-          <ArrowLeft size={48} className="text-muted-foreground rotate-180" />
+        <div className="w-20 h-20 mx-auto rounded-lg bg-muted/50 flex items-center justify-center mb-4">
+          <ArrowLeft size={40} className="text-muted-foreground rotate-180" />
         </div>
         <div className="space-y-3">
-          <h1 className="text-4xl font-black tracking-tighter text-foreground italic uppercase">Unknown Mission Signal</h1>
-          <p className="text-lg text-muted-foreground font-bold leading-relaxed">
-            The requested tactical path does not exist in the current grid. 
-            Redirecting to mission control.
+          <h1 className="text-3xl font-bold text-foreground">Page Not Found</h1>
+          <p className="text-base text-muted-foreground leading-relaxed">
+            The page you're looking for doesn't exist. Let's get you back to the dashboard.
           </p>
         </div>
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-white font-black rounded-2xl shadow-xl hover:shadow-primary/40 hover:-translate-y-1 transition-all active:scale-95 uppercase tracking-widest text-sm"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-lg shadow-sm hover:shadow hover:bg-primary/90 transition-all active:scale-95 text-sm"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={16} />
           Return to Dashboard
         </Link>
       </div>

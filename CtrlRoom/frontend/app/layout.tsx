@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`} style={{ backgroundColor: "var(--background)" }}>
+      <body className={`${inter.className} antialiased`} style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
         <AuthProvider>
           <LayoutWrapper>{children}</LayoutWrapper>
         </AuthProvider>

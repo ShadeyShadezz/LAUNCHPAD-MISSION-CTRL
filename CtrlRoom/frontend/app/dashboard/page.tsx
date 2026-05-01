@@ -45,19 +45,19 @@ export default function Dashboard() {
     return () => controller.abort();
   }, [fetchDashboardData]);
 
-  const userData = { fullName: 'Sarah Jenkins', role: 'Administrator' };
+  const userData = { fullName: 'Test User', role: 'Administrator' };
 
   const stats = {
-    activeStudents: 48,
-    earlyReleaseEligible: 12,
-    addedThisMonth: 8,
-    totalStudents: 156,
+    activeStudents: 0,
+    earlyReleaseEligible: 0,
+    addedThisMonth: 0,
+    totalStudents: 0,
   };
 
   const interactionStats = {
-    thisMonth: 24,
-    studentReachable: 145,
-    staffContributions: 6,
+    thisMonth: 0,
+    studentReachable: 0,
+    staffContributions: 0,
     pendingFollowUp: data.pendingFollowups,
   };
 
@@ -65,17 +65,16 @@ export default function Dashboard() {
     { icon: Plus, label: 'Add Partner', href: '/partners', description: 'Create a new partnership', color: 'primary' },
     { icon: Mail, label: 'Email Terminal', href: '/email', description: 'Send outreach intelligence', color: 'accent' as const },
     { icon: ClipboardList, label: 'Log Activity', href: '/interactions', description: 'Record mission data', color: 'success' as const },
-    { icon: AlertCircle, label: 'Admin Intel', href: '/admin', description: 'Review operational items', color: 'warning' as const },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-6 py-10 space-y-10">
         {/* Welcome */}
         <section className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="mt-2 text-base text-muted-foreground leading-relaxed">
               Welcome back, <span className="font-medium text-foreground">{userData.fullName}</span>
               <span className="ml-3 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary">
                 {userData.role}
@@ -94,8 +93,8 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <section>
-          <h2 className="text-sm font-semibold text-muted-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <h2 className="text-base font-semibold text-muted-foreground mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {quickActions.map((action) => {
               const Icon = action.icon;
               return (
@@ -125,13 +124,13 @@ export default function Dashboard() {
         </section>
 
         {/* Daily Briefing */}
-        <section className="bg-card border border-border rounded-lg p-5 flex flex-col md:flex-row items-start md:items-center gap-4">
+        <section className="bg-card border border-border rounded-lg p-6 flex flex-col md:flex-row items-start md:items-center gap-4">
           <div className="p-2 rounded bg-accent/10 text-accent flex-shrink-0">
             <AlertCircle size={20} />
           </div>
           <div className="flex-1">
-            <h3 className="font-medium text-foreground text-sm">Daily Briefing</h3>
-            <p className="mt-1 text-xs text-muted-foreground max-w-2xl">
+            <h3 className="font-semibold text-foreground text-base">Daily Briefing</h3>
+            <p className="mt-1 text-sm text-muted-foreground max-w-2xl leading-relaxed">
               Prioritize partner communication and verify student eligibility for early release missions.
             </p>
           </div>
@@ -145,14 +144,14 @@ export default function Dashboard() {
         </section>
 
         {/* Stats Grid */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Student Stats */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-6">
               <Users size={14} className="text-primary" />
-              <h2 className="text-sm font-semibold text-muted-foreground">Student Overview</h2>
+              <h2 className="text-base font-semibold text-muted-foreground">Student Overview</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <StatCard label="Total Students" value={stats.totalStudents} color="primary" />
               <StatCard label="Active Members" value={stats.activeStudents} color="primary" />
               <StatCard label="Early Release Ready" value={stats.earlyReleaseEligible} color="success" />
@@ -162,11 +161,11 @@ export default function Dashboard() {
 
           {/* Activity Stats */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-6">
               <TrendingUp size={14} className="text-primary" />
-              <h2 className="text-sm font-semibold text-muted-foreground">Activity Metrics</h2>
+              <h2 className="text-base font-semibold text-muted-foreground">Activity Metrics</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <StatCard label="This Month" value={interactionStats.thisMonth} color="primary" />
               <StatCard label="Student Reachable" value={interactionStats.studentReachable} color="primary" />
               <StatCard label="Staff Contributions" value={interactionStats.staffContributions} color="success" />
@@ -177,18 +176,18 @@ export default function Dashboard() {
 
         {/* Recent Interactions */}
         <section>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-6">
             <Clock size={14} className="text-primary" />
-            <h2 className="text-sm font-semibold text-muted-foreground">Recent Activity</h2>
+            <h2 className="text-base font-semibold text-muted-foreground">Recent Activity</h2>
           </div>
           <div className="bg-card border border-border rounded-lg divide-y divide-border">
             {loading ? (
-              <div className="p-4 text-sm text-muted-foreground animate-pulse">Loading recent activity...</div>
+              <div className="p-5 text-sm text-muted-foreground animate-pulse">Loading recent activity...</div>
             ) : data.recentInteractions.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground">No recent interactions found.</div>
+              <div className="p-5 text-sm text-muted-foreground">No recent interactions found.</div>
             ) : (
               data.recentInteractions.map((interaction) => (
-                <div key={interaction.id} className="p-3 flex items-start gap-3 hover:bg-muted/30 transition-colors">
+                <div key={interaction.id} className="p-4 flex items-start gap-3 hover:bg-muted/30 transition-colors">
                   <div className="p-1.5 rounded bg-primary/10 text-primary shrink-0">
                     <ClipboardList size={14} />
                   </div>
@@ -233,9 +232,9 @@ function StatCard({ label, value, color }: StatCardProps) {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 transition-all hover:shadow-sm">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className={clsx('mt-2 text-2xl font-bold', colorClasses[color])}>{value}</p>
+    <div className="bg-card border border-border rounded-lg p-5 transition-all hover:shadow-sm">
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className={clsx('mt-2 text-3xl font-bold', colorClasses[color])}>{value}</p>
       <div className="mt-3 w-full h-1 bg-muted rounded-full overflow-hidden">
         <div className={clsx('h-full rounded-full', colorClasses[color].replace('text-', 'bg-'))} style={{ width: '60%' }} />
       </div>

@@ -8,13 +8,7 @@ const AdminPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterAction, setFilterAction] = useState('all');
 
-  const activityLogs = [
-    { id: '1', staff: 'Sarah Jenkins', action: 'EDITED', target: 'TechBridge Academy', info: 'Updated contact information', timestamp: '2024-04-20 14:32' },
-    { id: '2', staff: 'James Brown', action: 'ADDED', target: 'Maria Garcia', info: 'Added new student', timestamp: '2024-04-20 10:15' },
-    { id: '3', staff: 'Sarah Jenkins', action: 'LOGGED IN', target: 'System', info: 'Staff login', timestamp: '2024-04-20 08:45' },
-    { id: '4', staff: 'Maria Garcia', action: 'ADDED', target: 'Youth Center Infosession', info: 'Logged interaction', timestamp: '2024-04-19 16:20' },
-    { id: '5', staff: 'David Chen', action: 'DELETED', target: 'Pending Partner', info: 'Removed inactive partner', timestamp: '2024-04-19 13:10' },
-  ];
+  const activityLogs = [];
 
   const filteredLogs = activityLogs.filter((log) => {
     const matchesSearch = log.staff.toLowerCase().includes(searchQuery.toLowerCase()) ||

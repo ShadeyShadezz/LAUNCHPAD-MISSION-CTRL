@@ -66,7 +66,7 @@ const SettingsPage = () => {
                 Full Name
               </p>
               <p className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-                Sarah Jenkins
+                Test User
               </p>
             </div>
             <div>
@@ -82,7 +82,7 @@ const SettingsPage = () => {
                 Email
               </p>
               <p className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-                sarah@launchpad.org
+                test@launchpad.com
               </p>
             </div>
             <div>

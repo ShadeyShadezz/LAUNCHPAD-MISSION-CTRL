@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, Mail, Settings, Shield, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Mail, Settings, Shield, LogOut, Menu } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/app/context/AuthContext';
+import { useState } from 'react';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -12,7 +13,6 @@ const navItems = [
   { href: '/students', label: 'Students', icon: Users },
   { href: '/interactions', label: 'Interactions Log', icon: Mail },
   { href: '/email', label: 'Email Terminal', icon: Mail },
-  { href: '/admin', label: 'Admin Panel', icon: Shield },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -20,6 +20,7 @@ const Sidebar = () => {
   const pathname = usePathname();
   const { logout, user } = useAuth();
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -27,64 +28,147 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 min-h-screen flex flex-col bg-slate-700 border-r border-slate-600">
-      {/* Logo */}
-      <div className="p-4 border-b border-slate-600">
-        <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-9 h-9 rounded-md flex items-center justify-center font-semibold text-sm bg-cyan-500 text-white">
-            LMC
-          </div>
-          <div className="min-w-0">
-            <h1 className="font-semibold text-sm text-white leading-tight">Launchpad</h1>
-            <p className="text-xs text-slate-300 mt-0.5">Mission Control</p>
-          </div>
-        </Link>
-      </div>
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="hidden md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50"
+      >
+        <Menu size={20} strokeWidth={1.5} />
+      </button>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 space-y-1">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-
-          return (
+      {/* Sidebar */}
+      <aside
+        className={clsx(
+          'sidebar fixed md:relative md:translate-x-0 h-screen transition-transform z-40',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+        style={{
+          backgroundColor: 'var(--sidebar)',
+          borderRight: '1px solid var(--sidebar-border)',
+        }}
+      >
+        <div className="flex flex-col h-full">
+          {/* Header - Logo */}
+          <div
+            className="sidebar-header"
+            style={{
+              borderBottom: '1px solid var(--sidebar-border)',
+            }}
+          >
             <Link
-              key={item.href}
-              href={item.href}
-              className={clsx(
-                'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors font-medium',
-                isActive
-                  ? 'bg-cyan-500 text-white'
-                  : 'text-slate-300 hover:bg-slate-600 hover:text-cyan-400'
-              )}
+              href="/dashboard"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1 min-w-0"
+              onClick={() => setIsOpen(false)}
             >
-              <Icon size={18} strokeWidth={1.5} />
-              <span>{item.label}</span>
+              <div
+                className="sidebar-logo flex-shrink-0"
+                style={{
+                  background: 'linear-gradient(135deg, var(--primary), #06b6d4)',
+                }}
+              >
+                LMC
+              </div>
+              <div className="sidebar-title min-w-0">
+                <h1 className="font-semibold text-sm leading-tight" style={{ color: 'var(--sidebar-foreground)' }}>
+                  Launchpad
+                </h1>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                  Mission Control
+                </p>
+              </div>
             </Link>
-          );
-        })}
-      </nav>
-
-      {/* User & Logout */}
-      <div className="p-3 border-t border-slate-600 space-y-3">
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-md bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-            {user?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-white truncate">{user?.email?.split('@')[0] || 'User'}</p>
-            <p className="text-xs text-slate-400">Staff</p>
+
+          {/* Navigation */}
+          <nav className="sidebar-nav flex-1 overflow-y-auto">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={clsx(
+                    'nav-item flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-all'
+                  )}
+                  style={{
+                    backgroundColor: isActive ? 'var(--sidebar-primary)' : 'transparent',
+                    color: isActive ? 'white' : 'var(--sidebar-foreground)',
+                    boxShadow: isActive ? '0 2px 8px rgba(14, 165, 164, 0.2)' : 'none',
+                  }}
+                >
+                  <Icon size={18} strokeWidth={1.5} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Footer - User */}
+          <div
+            className="sidebar-footer p-3 space-y-3"
+            style={{
+              borderTop: '1px solid var(--sidebar-border)',
+            }}
+          >
+            <div
+              className="user-card flex items-center gap-3 p-3 rounded-md"
+              style={{
+                backgroundColor: 'var(--sidebar-hover)',
+              }}
+            >
+              <div
+                className="user-avatar flex-shrink-0"
+                style={{
+                  background: 'linear-gradient(135deg, var(--primary), #06b6d4)',
+                }}
+              >
+                {user?.email?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+              <div className="user-info flex-1 min-w-0">
+                <p className="text-sm font-medium m-0 truncate" style={{ color: 'var(--sidebar-foreground)' }}>
+                  {user?.email?.split('@')[0] || 'User'}
+                </p>
+                <p className="text-xs m-0 mt-1" style={{ color: 'var(--muted-foreground)' }}>
+                  Staff
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all"
+              style={{
+                backgroundColor: 'var(--hover-bg)',
+                color: 'var(--sidebar-foreground)',
+                border: '1px solid var(--sidebar-border)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#fee2e2';
+                e.currentTarget.style.color = '#dc2626';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
+                e.currentTarget.style.color = 'var(--sidebar-foreground)';
+              }}
+            >
+              <LogOut size={16} />
+              Sign Out
+            </button>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-slate-600 text-slate-100 hover:bg-red-600 hover:text-white transition-colors"
-        >
-          <LogOut size={16} />
-          Sign Out
-        </button>
-      </div>
-    </aside>
+      </aside>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+    </>
   );
 };
 

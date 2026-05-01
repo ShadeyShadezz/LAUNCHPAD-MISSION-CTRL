@@ -9,42 +9,16 @@ const SearchPage = () => {
   const [activeTab, setActiveTab] = useState('all');
 
   const searchResults = {
-    partners: [
-      {
-        id: '1',
-        name: 'TechBridge Academy',
-        type: 'High School',
-        status: 'Active',
-        primaryContact: 'Marcus Johnson',
-        email: 'marcus@techbridge.edu',
-      },
-    ],
-    interactions: [
-      {
-        id: '1',
-        partner: 'TechBridge Academy',
-        type: 'Infosession',
-        staff: 'Sarah Jenkins',
-        notes: 'Great turnout, 25 students attended',
-        date: '2024-04-20',
-      },
-    ],
-    students: [
-      {
-        id: '1',
-        name: 'Jamal Smith',
-        cohort: "Class of '24",
-        partner: 'TechBridge Academy',
-        status: 'Active Member',
-      },
-    ],
+    partners: [],
+    interactions: [],
+    students: [],
   };
 
   const tabs = [
-    { id: 'all', label: 'All Results', count: 3 },
-    { id: 'partners', label: 'Partners', count: 1 },
-    { id: 'interactions', label: 'Interactions', count: 1 },
-    { id: 'students', label: 'Students', count: 1 },
+    { id: 'all', label: 'All Results', count: 0 },
+    { id: 'partners', label: 'Partners', count: 0 },
+    { id: 'interactions', label: 'Interactions', count: 0 },
+    { id: 'students', label: 'Students', count: 0 },
   ];
 
   const getResults = () => {

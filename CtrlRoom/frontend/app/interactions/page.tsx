@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, AlertCircle, Calendar, Users, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Search, AlertCircle, Calendar, Users, TrendingUp, Clock, Handshake } from 'lucide-react';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 
@@ -11,22 +11,15 @@ export default function InteractionsPage() {
   const [filterStaff, setFilterStaff] = useState('all');
 
   const stats = [
-    { label: 'Interactions This Month', value: 24, icon: Calendar },
-    { label: 'Student Reachable', value: 145, icon: Users },
-    { label: 'Staff Contributions', value: 6, icon: TrendingUp },
-    { label: 'Pending Follow-up', value: 5, icon: Clock },
+    { label: 'Interactions This Month', value: 0, icon: Calendar },
+    { label: 'Student Reachable', value: 0, icon: Users },
+    { label: 'Staff Contributions', value: 0, icon: TrendingUp },
+    { label: 'Pending Follow-up', value: 0, icon: Clock },
   ];
 
-  const interactions = [
-    { id: '1', date: '2024-04-20', partner: 'TechBridge Academy', type: 'Infosession', staff: 'Sarah Jenkins', students: 25, notes: 'Great turnout' },
-    { id: '2', date: '2024-04-18', partner: 'Youth Empowerment Center', type: 'Meeting', staff: 'James Brown', students: 0, notes: 'Partnership discussion' },
-    { id: '3', date: '2024-04-15', partner: 'Lincoln High School', type: 'Tabling', staff: 'Sarah Jenkins', students: 18, notes: 'Student recruitment event' },
-  ];
+  const interactions = [];
 
-  const pendingFollowUps = [
-    { id: '1', interaction: 'TechBridge Academy Infosession', dueDate: '2024-04-25', owner: 'Sarah Jenkins', notes: 'Send thank you email' },
-    { id: '2', interaction: 'Lincoln High School Meeting', dueDate: '2024-04-23', owner: 'James Brown', notes: 'Follow-up discussion' },
-  ];
+  const pendingFollowUps = [];
 
   const filteredInteractions = interactions.filter((i) => {
     const matchesSearch = i.partner.toLowerCase().includes(searchQuery.toLowerCase());
@@ -40,7 +33,9 @@ export default function InteractionsPage() {
       <div className="max-w-7xl mx-auto px-8 py-10 space-y-8">
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Interactions Log</h1>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Handshake size={28} />
+            </h1>
             <p className="mt-2 text-muted-foreground">Track outreach activity and engagements.</p>
           </div>
           <Link href="/interactions/new" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm">
@@ -78,7 +73,7 @@ export default function InteractionsPage() {
           </select>
           <select value={filterStaff} onChange={(e) => setFilterStaff(e.target.value)} className="px-4 py-2.5 bg-input border border-border rounded-lg text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
             <option value="all">All Staff</option>
-            <option value="Sarah Jenkins">Sarah Jenkins</option>
+            <option value="Test User">Test User</option>
             <option value="James Brown">James Brown</option>
           </select>
         </section>

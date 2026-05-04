@@ -279,9 +279,10 @@ input, select, textarea {
   background-color: var(--input);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-5);
   color: var(--foreground);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  line-height: 1.5;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -375,7 +376,7 @@ button:focus {
   color: var(--card-foreground);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  padding: var(--space-8);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);
 }
@@ -386,29 +387,30 @@ button:focus {
 }
 
 .card-header {
-  margin-bottom: var(--space-6);
-  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-6);
   border-bottom: 1px solid var(--border);
 }
 
 .card-header h2 {
   margin: 0;
   color: var(--foreground);
+  font-size: var(--text-xl);
 }
 
 .card-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-6);
 }
 
 .card-footer {
-  margin-top: var(--space-6);
-  padding-top: var(--space-4);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 /* ═════════════════════════════════════════════════════════════
@@ -425,27 +427,28 @@ button:focus {
   background: var(--background);
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-8);
+  padding: var(--space-8) var(--space-10);
 }
 
 .page-header {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-10);
 }
 
 .page-header h1 {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .page-title {
   font-size: var(--text-3xl);
   font-weight: var(--font-bold);
   color: var(--foreground);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 .page-subtitle {
   color: var(--muted-foreground);
   font-size: var(--text-lg);
+  margin-bottom: var(--space-4);
 }
 
 /* ═════════════════════════════════════════════════════════════
@@ -456,11 +459,14 @@ button:focus {
 .grid-cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-cols-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-
+.gap-2 { gap: var(--space-2); }
 .gap-3 { gap: var(--space-3); }
 .gap-4 { gap: var(--space-4); }
+
 .gap-6 { gap: var(--space-6); }
 .gap-8 { gap: var(--space-8); }
+.gap-10 { gap: 40px; }
+
 
 .flex-col { display: flex; flex-direction: column; }
 .flex-row { display: flex; flex-direction: row; }
@@ -513,13 +519,10 @@ table {
   border-spacing: 0;
 }
 
-thead {
+thead th {
   background-color: var(--muted);
   border-bottom: 1px solid var(--border);
-}
-
-th {
-  padding: var(--space-4);
+  padding: var(--space-5) var(--space-6);
   text-align: left;
   font-weight: 600;
   color: var(--foreground);
@@ -527,7 +530,7 @@ th {
 }
 
 td {
-  padding: var(--space-4);
+  padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--border);
   font-size: var(--text-sm);
 }

@@ -1,0 +1,62 @@
+// BACKUP of original schema - kept for reference
+// Generated on May 4, 2026
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMINISTRATOR
+  PROGRAM_COORDINATOR
+  PARTNERSHIP_MANAGER
+  STAFF_USER
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  passwordHash  String?
+  googleId      String?
+  fullName      String
+  role          Role          @default(STAFF_USER)
+  title         String?
+  accessLevel   String?
+  createdAt     DateTime      @default(now())
+  lastLogin     DateTime?
+  partners      Partner[]     @relation("CreatedBy")
+  interactions  Interaction[]
+  students      Student[]     @relation("AddedBy")
+  activityLogs  ActivityLog[]
+  emailDrafts   EmailDraft[]
+  savedSearches SavedSearch[]
+}
+
+model Partner {
+  id                        String        @id @default(uuid())
+  organizationName          String
+  websiteUrl                String?
+  schoolType                String?
+  officialStatusDate        DateTime?
+  courseNumber              Int?
+  makeVirtualHours          Int?
+  totalPaidContentSees      Int?
+  partnerType               String?
+  partnerStatus             String?
+  currentStatusNotes        String?
+  earlyReleaseForSeniors    Boolean       @default(false)
+  pastCohortMembers         Json?
+  originalJobNoticeDetails  String?
+  tags                      String[]
+  createdBy                 User          @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById               String
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+  contacts                  Contact[]
+  interactions              Interaction[]
+  students                  Student[]
+  emailDrafts               EmailDraft[]
+}

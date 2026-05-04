@@ -71,31 +71,31 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-8 py-12 space-y-12">
+      <div className="max-w-7xl mx-auto px-6 py-16 space-y-16">
         {/* Welcome */}
-        <section className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <section className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="mt-2 text-base text-muted-foreground leading-relaxed">
-              Welcome back, <span className="font-medium text-foreground">{user?.fullName}</span>
-              <span className="ml-3 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary">
+            <h1 className="text-4xl font-bold text-foreground mb-4">Dashboard</h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Welcome back, <span className="font-medium text-foreground text-lg">{user?.fullName}</span>
+              <span className="ml-4 inline-flex items-center px-3 py-2 rounded text-xs font-medium bg-primary/10 text-primary">
                 {user?.role}
               </span>
             </p>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground bg-card px-3 py-2 rounded border border-border">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground bg-card px-5 py-3 rounded border border-border whitespace-nowrap">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
               System Online
             </span>
-            <span className="w-px h-3 bg-border" />
+            <span className="w-px h-4 bg-border" />
             <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
           </div>
         </section>
 
         {/* Quick Actions */}
         <section>
-          <h2 className="text-base font-semibold text-muted-foreground mb-6">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-8">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {quickActions.map((action) => {
               const Icon = action.icon;
@@ -103,21 +103,21 @@ export default function Dashboard() {
                 <Link
                   key={action.label}
                   href={action.href}
-                  className="group flex flex-col p-4 bg-card border border-border rounded-lg transition-all hover:shadow-md hover:border-primary/30"
+                  className="group flex flex-col p-8 bg-card border border-border rounded-lg transition-all hover:shadow-lg hover:border-primary/50"
                 >
                   <div className={clsx(
-                    'w-10 h-10 rounded-md flex items-center justify-center mb-3 transition-transform group-hover:scale-105',
+                    'w-12 h-12 rounded-lg flex items-center justify-center mb-5 transition-transform group-hover:scale-110',
                     action.color === 'primary' ? 'bg-primary/10 text-primary' :
                     action.color === 'accent' ? 'bg-accent/10 text-accent' :
                     action.color === 'success' ? 'bg-success/10 text-success' :
                     'bg-warning/10 text-warning'
                   )}>
-                    <Icon size={20} />
+                    <Icon size={24} />
                   </div>
-                  <h3 className="font-medium text-sm text-foreground">{action.label}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{action.description}</p>
-                  <div className="mt-auto pt-3 flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                    Go <ArrowRight size={12} />
+                  <h3 className="font-semibold text-base text-foreground mb-2">{action.label}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">{action.description}</p>
+                  <div className="mt-6 flex items-center gap-1 text-sm font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    Go <ArrowRight size={16} />
                   </div>
                 </Link>
               );
@@ -126,32 +126,32 @@ export default function Dashboard() {
         </section>
 
         {/* Daily Briefing */}
-        <section className="bg-card border border-border rounded-lg p-6 flex flex-col md:flex-row items-start md:items-center gap-4">
-          <div className="p-2 rounded bg-accent/10 text-accent flex-shrink-0">
-            <AlertCircle size={20} />
+        <section className="bg-card border border-border rounded-lg p-8 flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="p-3 rounded-lg bg-accent/10 text-accent flex-shrink-0">
+            <AlertCircle size={24} />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground text-base">Daily Briefing</h3>
-            <p className="mt-1 text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            <h3 className="font-semibold text-lg text-foreground mb-2">Daily Briefing</h3>
+            <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
               Prioritize partner communication and verify student eligibility for early release missions.
             </p>
           </div>
           <Link
             href="mailto:"
-            className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors"
+            className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-accent text-white text-sm font-semibold hover:bg-accent/90 transition-colors"
           >
-            <Mail size={14} />
+            <Mail size={16} />
             Launch Outreach
           </Link>
         </section>
 
         {/* Stats Grid */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Student Stats */}
           <div>
-            <div className="flex items-center gap-2 mb-6">
-              <Users size={14} className="text-primary" />
-              <h2 className="text-base font-semibold text-muted-foreground">Student Overview</h2>
+            <div className="flex items-center gap-3 mb-8">
+              <Users size={18} className="text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">Student Overview</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <StatCard label="Total Students" value={stats.totalStudents} color="primary" />
@@ -163,9 +163,9 @@ export default function Dashboard() {
 
           {/* Activity Stats */}
           <div>
-            <div className="flex items-center gap-2 mb-6">
-              <TrendingUp size={14} className="text-primary" />
-              <h2 className="text-base font-semibold text-muted-foreground">Activity Metrics</h2>
+            <div className="flex items-center gap-3 mb-8">
+              <TrendingUp size={18} className="text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">Activity Metrics</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <StatCard label="This Month" value={interactionStats.thisMonth} color="primary" />
@@ -178,9 +178,9 @@ export default function Dashboard() {
 
         {/* Recent Interactions */}
         <section>
-          <div className="flex items-center gap-2 mb-6">
-            <Clock size={14} className="text-primary" />
-            <h2 className="text-base font-semibold text-muted-foreground">Recent Activity</h2>
+          <div className="flex items-center gap-3 mb-8">
+            <Clock size={18} className="text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
           </div>
           <div className="bg-card border border-border rounded-lg divide-y divide-border">
             {loading ? (

@@ -1,15 +1,16 @@
-# Fix Dashboard Fetch & Backend Error Handling
+# CSS Fix Plan - globals.css Syntax Errors
 
-- [x] Analyze error and gather context
-- [x] Fix `CtrlRoom/frontend/app/dashboard/page.tsx`
-  - [x] Refactor `fetchDashboardData` with `useCallback`, define before `useEffect`
-  - [x] Update `useEffect` dependency array and add `AbortController` cleanup
-  - [x] Improve JSON response handling
-  - [x] Render `recentInteractions` data
-- [x] Fix `CtrlRoom/backend/index.js`
-  - [x] Wrap `/api/staff/dashboard` in `try-catch`
-  - [x] Return JSON error on failure
-- [x] Fix `CtrlRoom/frontend/next.config.ts`
-  - [x] Change `module.exports` to `export default`
-- [x] Verify fixes
+## Status: In Progress ⏳
+
+### Step 1: Create this TODO.md [✅ COMPLETE]
+
+### Step 2: Fix invalid grid selector '2 { gap: var(--space-2); }' [✅ COMPLETE]
+
+### Step 3: Remove duplicate '.gap-8' class [✅ COMPLETE]
+
+### Step 4: Fix malformed table styles (thead/th/td block with '5)' error) [✅ COMPLETE]
+
+### Step 5: Test with 'cd CtrlRoom/frontend && npm run dev' [✅ COMPLETE]
+
+**Goal**: Resolve PostCSS 'Unknown word 5' error at line 524 in globals.css.
 

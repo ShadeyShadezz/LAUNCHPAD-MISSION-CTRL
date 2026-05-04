@@ -14,8 +14,8 @@ export default function GoogleAuthCallback() {
 
     if (error) {
       setStatus(`Authentication failed: ${error}`);
-      setTimeout(() => router.push('/email'), 3000);
-      return;
+      const timer = setTimeout(() => router.push('/email'), 3000);
+      return () => clearTimeout(timer);
     }
 
     if (code) {
@@ -25,16 +25,18 @@ export default function GoogleAuthCallback() {
         // Simulate token exchange
         localStorage.setItem('gmailAuthCode', code);
         setStatus('Authentication successful! Redirecting...');
-        
+
         // In production, you would:
         // 1. Send code to backend
         // 2. Exchange for access token
         // 3. Store token securely
-        
-        setTimeout(() => router.push('/email'), 2000);
+
+        const timer = setTimeout(() => router.push('/email'), 2000);
+        return () => clearTimeout(timer);
       } catch (err) {
         setStatus('Failed to process authentication');
-        setTimeout(() => router.push('/email'), 3000);
+        const timer = setTimeout(() => router.push('/email'), 3000);
+        return () => clearTimeout(timer);
       }
     }
   }, [searchParams, router]);

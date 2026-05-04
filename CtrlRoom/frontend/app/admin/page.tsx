@@ -1,19 +1,47 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
+import { api } from '@/lib/api';
+
+interface ActivityLog {
+  id: string;
+  user: { fullName: string };
+  action: string;
+  targetType: string;
+  targetName?: string;
+  additionalInfo?: string;
+  createdAt: string;
+}
 
 const AdminPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterAction, setFilterAction] = useState('all');
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const activityLogs = [];
+  useEffect(() => {
+    fetchActivityLogs();
+  }, []);
+
+  const fetchActivityLogs = async () => {
+    setLoading(true);
+    try {
+      const data = await api.getActivityLogs();
+      setActivityLogs(data);
+    } catch (error) {
+      console.error('Error fetching activity logs:', error);
+      setActivityLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredLogs = activityLogs.filter((log) => {
-    const matchesSearch = log.staff.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.target.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.info.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = log.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.targetName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.additionalInfo?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesAction = filterAction === 'all' || log.action === filterAction;
     return matchesSearch && matchesAction;
   });
@@ -85,15 +113,22 @@ const AdminPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredLogs.length > 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-12 text-center">
+                      <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                      <p className="text-sm text-muted-foreground">Loading activity logs...</p>
+                    </td>
+                  </tr>
+                ) : filteredLogs.length > 0 ? (
                   filteredLogs.map((log) => (
                     <tr key={log.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
-                            {log.staff.split(' ').map(n => n[0]).join('')}
+                            {log.user?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
                           </div>
-                          <span className="text-sm font-medium text-foreground">{log.staff}</span>
+                          <span className="text-sm font-medium text-foreground">{log.user?.fullName || 'Unknown'}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -101,9 +136,11 @@ const AdminPage = () => {
                           {log.action}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-foreground">{log.target}</td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">{log.info}</td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">{log.timestamp}</td>
+                      <td className="px-4 py-3 text-sm text-foreground">{log.targetName || log.targetType}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">{log.additionalInfo || 'No details'}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </td>
                     </tr>
                   ))
                 ) : (

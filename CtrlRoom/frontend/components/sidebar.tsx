@@ -2,17 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, Mail, Settings, Shield, LogOut, Menu } from 'lucide-react';
+import { LayoutDashboard, Users, Mail, Settings, Shield, LogOut, FileText } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/app/context/AuthContext';
-import { useState } from 'react';
+
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/partners', label: 'Partners', icon: Users },
-  { href: '/students', label: 'Students', icon: Users },
   { href: '/interactions', label: 'Interactions Log', icon: Mail },
   { href: '/email', label: 'Email Terminal', icon: Mail },
+  { href: '/activity-log', label: 'Activity Log', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -20,7 +20,6 @@ const Sidebar = () => {
   const pathname = usePathname();
   const { logout, user } = useAuth();
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -29,20 +28,9 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="hidden md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50"
-      >
-        <Menu size={20} strokeWidth={1.5} />
-      </button>
-
       {/* Sidebar */}
       <aside
-        className={clsx(
-          'sidebar fixed md:relative md:translate-x-0 h-screen transition-transform z-40',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        )}
+        className="sidebar fixed md:relative md:translate-x-0 h-screen z-40"
         style={{
           backgroundColor: 'var(--sidebar)',
           borderRight: '1px solid var(--sidebar-border)',
@@ -59,7 +47,6 @@ const Sidebar = () => {
             <Link
               href="/dashboard"
               className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1 min-w-0"
-              onClick={() => setIsOpen(false)}
             >
               <div
                 className="sidebar-logo flex-shrink-0"
@@ -90,7 +77,7 @@ const Sidebar = () => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setIsOpen(false)}
+
                   className={clsx(
                     'nav-item flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-all'
                   )}
@@ -161,13 +148,6 @@ const Sidebar = () => {
         </div>
       </aside>
 
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
     </>
   );
 };

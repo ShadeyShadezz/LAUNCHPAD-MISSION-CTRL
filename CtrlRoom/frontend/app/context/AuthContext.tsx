@@ -5,8 +5,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: string;
   email: string;
-  name: string;
+  fullName: string;
   role: string;
+  title?: string;
   accessLevel: string;
 }
 
@@ -50,8 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const testUser = {
           id: 'test-user-id',
           email: 'test@launchpad.com',
-          name: 'Test User',
-          role: 'STAFF_USER',
+          fullName: 'Test User',
+          role: 'ADMINISTRATOR',
+          title: 'Program Director',
           accessLevel: 'FULL'
         };
         setUser(testUser);
@@ -61,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

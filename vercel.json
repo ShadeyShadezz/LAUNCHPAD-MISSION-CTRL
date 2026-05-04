@@ -11,5 +11,13 @@
       "src": "/(.*)",
       "dest": "CtrlRoom/frontend/$1"
     }
-  ]
+  ],
+  "env": {
+    "NEXT_PUBLIC_BACKEND_URL": "@next_public_backend_url"
+  },
+  "functions": {
+    "CtrlRoom/frontend/**/*.js": {
+      "maxDuration": 10
+    }
+  }
 }

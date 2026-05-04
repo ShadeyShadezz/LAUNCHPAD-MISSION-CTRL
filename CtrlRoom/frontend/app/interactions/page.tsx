@@ -1,30 +1,90 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, AlertCircle, Calendar, Users, TrendingUp, Clock, Handshake } from 'lucide-react';
 import Link from 'next/link';
 import { clsx } from 'clsx';
+import { api } from '@/lib/api';
+
+interface Interaction {
+  id: string;
+  date: string;
+  partner: { organizationName: string };
+  interactionType: string;
+  staff: { fullName: string };
+  studentCount: number;
+  sharedNotes: string;
+  needsFollowup: boolean;
+  followupDueDate?: string;
+}
+
+interface PendingFollowUp {
+  id: string;
+  interaction: string;
+  dueDate: string;
+  owner: string;
+  notes: string;
+}
 
 export default function InteractionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStaff, setFilterStaff] = useState('all');
+  const [interactions, setInteractions] = useState<Interaction[]>([]);
+  const [staffList, setStaffList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const stats = [
-    { label: 'Interactions This Month', value: 0, icon: Calendar },
-    { label: 'Student Reachable', value: 0, icon: Users },
-    { label: 'Staff Contributions', value: 0, icon: TrendingUp },
-    { label: 'Pending Follow-up', value: 0, icon: Clock },
+    { label: 'Interactions This Month', value: interactions.length, icon: Calendar },
+    { label: 'Student Reachable', value: interactions.reduce((sum, i) => sum + i.studentCount, 0), icon: Users },
+    { label: 'Staff Contributions', value: new Set(interactions.map(i => i.staff?.fullName)).size, icon: TrendingUp },
+    { label: 'Pending Follow-up', value: interactions.filter(i => i.needsFollowup).length, icon: Clock },
   ];
 
-  const interactions = [];
+  const pendingFollowUps: PendingFollowUp[] = interactions
+    .filter(i => i.needsFollowup && i.followupDueDate)
+    .map(i => ({
+      id: i.id,
+      interaction: `${i.interactionType} with ${i.partner?.organizationName}`,
+      dueDate: i.followupDueDate!,
+      owner: i.staff?.fullName || 'Unknown',
+      notes: i.sharedNotes || 'No notes provided',
+    }));
 
-  const pendingFollowUps = [];
+  useEffect(() => {
+    fetchInteractions();
+    fetchStaff();
+  }, []);
+
+  const fetchInteractions = async () => {
+    setLoading(true);
+    try {
+      const data = await api.getInteractions();
+      setInteractions(data);
+    } catch (error) {
+      console.error('Error fetching interactions:', error);
+      setInteractions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStaff = async () => {
+    try {
+      const data = await api.getStaff();
+      setStaffList(data);
+    } catch (error) {
+      console.error('Error fetching staff:', error);
+      setStaffList([]);
+    }
+  };
 
   const filteredInteractions = interactions.filter((i) => {
-    const matchesSearch = i.partner.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = filterType === 'all' || i.type.toLowerCase() === filterType;
-    const matchesStaff = filterStaff === 'all' || i.staff === filterStaff;
+    const matchesSearch = i.partner?.organizationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         i.staff?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         i.sharedNotes?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === 'all' || i.interactionType.toLowerCase() === filterType;
+    const matchesStaff = filterStaff === 'all' || i.staff?.fullName === filterStaff;
     return matchesSearch && matchesType && matchesStaff;
   });
 
@@ -73,41 +133,57 @@ export default function InteractionsPage() {
           </select>
           <select value={filterStaff} onChange={(e) => setFilterStaff(e.target.value)} className="px-4 py-2.5 bg-input border border-border rounded-lg text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
             <option value="all">All Staff</option>
-            <option value="Test User">Test User</option>
-            <option value="James Brown">James Brown</option>
+            {staffList.map((staff) => (
+              <option key={staff.id} value={staff.fullName}>{staff.fullName}</option>
+            ))}
           </select>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Recent Interactions</h2>
           <div className="space-y-3">
-            {filteredInteractions.map((i) => (
-              <div key={i.id} className="bg-card border border-border rounded-lg p-5 hover:border-primary/20 transition-colors">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Date</p>
-                    <p className="text-sm font-medium text-foreground">{new Date(i.date).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Partner</p>
-                    <p className="text-sm font-medium text-foreground">{i.partner}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Type</p>
-                    <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">{i.type}</span>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Staff</p>
-                    <p className="text-sm font-medium text-foreground">{i.staff}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Students</p>
-                    <p className="text-lg font-bold text-success">{i.students}</p>
-                  </div>
-                </div>
-                <p className="mt-3 pt-3 border-t border-border/50 text-sm text-muted-foreground">{i.notes}</p>
+            {loading ? (
+              <div className="bg-card border border-border rounded-lg p-8 text-center">
+                <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-sm text-muted-foreground">Loading interactions...</p>
               </div>
-            ))}
+            ) : filteredInteractions.length === 0 ? (
+              <div className="bg-card border border-border rounded-lg p-8 text-center">
+                <Users size={24} className="mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm font-medium text-foreground">No interactions found</p>
+                <p className="text-xs text-muted-foreground mt-1">Try adjusting your search or filters.</p>
+              </div>
+            ) : (
+              filteredInteractions.map((i) => (
+                <div key={i.id} className="bg-card border border-border rounded-lg p-5 hover:border-primary/20 transition-colors">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Date</p>
+                      <p className="text-sm font-medium text-foreground">{new Date(i.date).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Partner</p>
+                      <p className="text-sm font-medium text-foreground">{i.partner?.organizationName}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Type</p>
+                      <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                        {i.interactionType.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Staff</p>
+                      <p className="text-sm font-medium text-foreground">{i.staff?.fullName}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Students</p>
+                      <p className="text-lg font-bold text-success">{i.studentCount}</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 pt-3 border-t border-border/50 text-sm text-muted-foreground">{i.sharedNotes}</p>
+                </div>
+              ))
+            )}
           </div>
         </section>
 

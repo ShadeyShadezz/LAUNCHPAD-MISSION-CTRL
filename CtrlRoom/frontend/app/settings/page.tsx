@@ -1,10 +1,14 @@
 'use client';
 
-import { Edit2, Trash2, UserPlus } from 'lucide-react';
+import { Edit2, Trash2, UserPlus, Moon, Sun } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { useTheme } from '@/app/context/ThemeContext';
+import { useAuth } from '@/app/context/AuthContext';
 
 const SettingsPage = () => {
+  const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const [staffList, setStaffList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +70,7 @@ const SettingsPage = () => {
                 Full Name
               </p>
               <p className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-                Test User
+                {user?.fullName}
               </p>
             </div>
             <div>
@@ -74,7 +78,7 @@ const SettingsPage = () => {
                 Your Title / Role
               </p>
               <p className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-                Administrator - Program Director
+                {user?.role} {user?.title && `- ${user.title}`}
               </p>
             </div>
             <div>
@@ -82,7 +86,7 @@ const SettingsPage = () => {
                 Email
               </p>
               <p className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-                test@launchpad.com
+                {user?.email}
               </p>
             </div>
             <div>
@@ -93,6 +97,50 @@ const SettingsPage = () => {
                 Full access
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Appearance Settings */}
+        <div
+          className="rounded-lg border p-8"
+          style={{
+            backgroundColor: "var(--card)",
+            borderColor: "var(--border)",
+          }}
+        >
+          <h2 className="text-2xl font-bold mb-6" style={{ color: "var(--foreground)" }}>
+            Appearance
+          </h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--foreground)" }}>
+                Theme
+              </h3>
+              <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+                Choose your preferred theme for the application
+              </p>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-3 px-4 py-2 rounded-lg border transition-all"
+              style={{
+                backgroundColor: "var(--secondary)",
+                borderColor: "var(--border)",
+                color: "var(--foreground)",
+              }}
+            >
+              {theme === 'light' ? (
+                <>
+                  <Moon size={20} />
+                  <span className="text-sm font-medium">Dark Mode</span>
+                </>
+              ) : (
+                <>
+                  <Sun size={20} />
+                  <span className="text-sm font-medium">Light Mode</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -130,9 +178,7 @@ const SettingsPage = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                     Title
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                    Access Level
-                  </th>
+
                   <th className="px-6 py-4 text-right text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                     Actions
                   </th>
@@ -165,9 +211,7 @@ const SettingsPage = () => {
                     <td className="px-6 py-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
                       {staff.title}
                     </td>
-                    <td className="px-6 py-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
-                      {staff.accessLevel}
-                    </td>
+
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -199,53 +243,7 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        {/* Role Definitions */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6" style={{ color: "var(--foreground)" }}>
-            Role Definitions
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              {
-                role: 'Administrator',
-                permissions: ['Full access', 'Add/edit/delete partners', 'Manage staff', 'View activity log'],
-              },
-              {
-                role: 'Program Coordinator',
-                permissions: ['Add interactions', 'Update partner notes', 'Manage outreach', 'View all records'],
-              },
-              {
-                role: 'Partnership Manager',
-                permissions: ['Manage partner records', 'Update contacts', 'Track partnerships', 'View all records'],
-              },
-              {
-                role: 'Staff User',
-                permissions: ['View shared records', 'Edit own interactions', 'Log activities', 'Add students'],
-              },
-            ].map((item) => (
-              <div
-                key={item.role}
-                className="rounded-lg border p-6"
-                style={{
-                  backgroundColor: "var(--card)",
-                  borderColor: "var(--border)",
-                }}
-              >
-                <h3 className="font-bold mb-3" style={{ color: "var(--foreground)" }}>
-                  {item.role}
-                </h3>
-                <ul className="space-y-2">
-                  {item.permissions.map((perm) => (
-                    <li key={perm} className="flex items-start gap-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-                      <span style={{ color: "var(--success)", marginTop: '2px' }}>✓</span>
-                      {perm}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
+
       </div>
     </div>
   );

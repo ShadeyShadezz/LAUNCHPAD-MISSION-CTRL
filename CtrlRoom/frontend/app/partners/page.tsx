@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Mail, Edit2, TrendingUp, Trash2, Building2 } from 'lucide-react';
+import { Plus, Search, Mail, Edit2, TrendingUp, Trash2, Building2, Filter, Tag, Save, Bookmark, X, ChevronDown } from 'lucide-react';
 import { clsx } from 'clsx';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/context/AuthContext';
@@ -14,9 +14,18 @@ interface Partner {
   schoolType?: string | null;
   websiteUrl?: string | null;
   partnerStatus?: string | null;
+  partnerType?: string | null;
   courseNumber?: number | null;
   earlyReleaseForSeniors: boolean;
+  tags: string[];
   contacts: Array<{ id: string; name: string; email: string; title?: string | null }>;
+}
+
+interface SavedSearch {
+  id: string;
+  name: string;
+  filters: any;
+  isDefault: boolean;
 }
 
 export default function PartnersPage() {
@@ -26,18 +35,40 @@ export default function PartnersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [showSaveSearch, setShowSaveSearch] = useState(false);
+  const [saveSearchName, setSaveSearchName] = useState('');
+  const [filters, setFilters] = useState({
+    partnerType: '',
+    partnerStatus: '',
+    schoolType: '',
+    earlyReleaseEligible: '',
+    tags: [] as string[],
+  });
   const [formData, setFormData] = useState({
     organizationName: '',
     schoolType: '',
     websiteUrl: '',
     courseNumber: '',
     earlyReleaseForSeniors: false,
+    tags: [] as string[],
     contacts: [{ name: '', email: '', title: '' }],
   });
 
   useEffect(() => {
     fetchPartners();
+    fetchSavedSearches();
   }, []);
+
+  const fetchSavedSearches = async () => {
+    try {
+      const data = await api.getSavedSearches('partners');
+      setSavedSearches(data);
+    } catch (error) {
+      console.error('Error fetching saved searches:', error);
+    }
+  };
 
   const fetchPartners = async () => {
     setLoading(true);
@@ -67,6 +98,7 @@ export default function PartnersPage() {
           websiteUrl: formData.websiteUrl,
           courseNumber: formData.courseNumber ? parseInt(formData.courseNumber) : null,
           earlyReleaseForSeniors: formData.earlyReleaseForSeniors,
+          tags: formData.tags,
           contacts: formData.contacts,
         });
       } else {
@@ -76,6 +108,7 @@ export default function PartnersPage() {
           websiteUrl: formData.websiteUrl,
           courseNumber: formData.courseNumber ? parseInt(formData.courseNumber) : null,
           earlyReleaseForSeniors: formData.earlyReleaseForSeniors,
+          tags: formData.tags,
           createdById: user.id,
           contacts: { create: formData.contacts },
         });
@@ -96,6 +129,7 @@ export default function PartnersPage() {
       websiteUrl: '',
       courseNumber: '',
       earlyReleaseForSeniors: false,
+      tags: [],
       contacts: [{ name: '', email: '', title: '' }],
     });
   };
@@ -107,6 +141,7 @@ export default function PartnersPage() {
       websiteUrl: partner.websiteUrl || '',
       courseNumber: partner.courseNumber?.toString() || '',
       earlyReleaseForSeniors: partner.earlyReleaseForSeniors,
+      tags: partner.tags || [],
       contacts: partner.contacts.map(c => ({
         name: c.name,
         email: c.email,
@@ -127,10 +162,87 @@ export default function PartnersPage() {
     }
   };
 
-  const filteredPartners = partners.filter(p =>
-    p.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.contacts.some(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredPartners = partners.filter(p => {
+    // Text search
+    const matchesSearch = !searchQuery ||
+      p.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.contacts.some(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      p.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    // Advanced filters
+    const matchesPartnerType = !filters.partnerType || p.partnerType === filters.partnerType;
+    const matchesPartnerStatus = !filters.partnerStatus || p.partnerStatus === filters.partnerStatus;
+    const matchesSchoolType = !filters.schoolType || p.schoolType === filters.schoolType;
+    const matchesEarlyRelease = !filters.earlyReleaseEligible ||
+      (filters.earlyReleaseEligible === 'true' && p.earlyReleaseForSeniors) ||
+      (filters.earlyReleaseEligible === 'false' && !p.earlyReleaseForSeniors);
+    const matchesTags = filters.tags.length === 0 ||
+      filters.tags.every(tag => p.tags.includes(tag));
+
+    return matchesSearch && matchesPartnerType && matchesPartnerStatus &&
+           matchesSchoolType && matchesEarlyRelease && matchesTags;
+  });
+
+  const handleSaveSearch = async () => {
+    if (!saveSearchName.trim()) return;
+
+    try {
+      await api.createSavedSearch({
+        name: saveSearchName,
+        searchType: 'partners',
+        filters: { searchQuery, ...filters }
+      });
+      setShowSaveSearch(false);
+      setSaveSearchName('');
+      fetchSavedSearches();
+    } catch (error) {
+      console.error('Error saving search:', error);
+    }
+  };
+
+  const handleLoadSearch = (savedSearch: SavedSearch) => {
+    setSearchQuery(savedSearch.filters.searchQuery || '');
+    setFilters({
+      partnerType: savedSearch.filters.partnerType || '',
+      partnerStatus: savedSearch.filters.partnerStatus || '',
+      schoolType: savedSearch.filters.schoolType || '',
+      earlyReleaseEligible: savedSearch.filters.earlyReleaseEligible || '',
+      tags: savedSearch.filters.tags || [],
+    });
+  };
+
+  const handleDeleteSearch = async (id: string) => {
+    try {
+      await api.deleteSavedSearch(id);
+      fetchSavedSearches();
+    } catch (error) {
+      console.error('Error deleting saved search:', error);
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilters({
+      partnerType: '',
+      partnerStatus: '',
+      schoolType: '',
+      earlyReleaseEligible: '',
+      tags: [],
+    });
+  };
+
+  const addTagFilter = (tag: string) => {
+    if (!filters.tags.includes(tag)) {
+      setFilters({...filters, tags: [...filters.tags, tag]});
+    }
+  };
+
+  const removeTagFilter = (tag: string) => {
+    setFilters({...filters, tags: filters.tags.filter(t => t !== tag)});
+  };
+
+  // Get all unique tags from partners
+  const allTags = Array.from(new Set(partners.flatMap(p => p.tags))).sort();
 
   if (loading) {
     return (
@@ -142,7 +254,7 @@ export default function PartnersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-8 py-10 space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -230,6 +342,50 @@ export default function PartnersPage() {
                 </label>
               </div>
 
+              {/* Tags */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Tag size={16} />
+                  Tags
+                </label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {formData.tags.map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = formData.tags.filter((_, i) => i !== idx);
+                          setFormData({...formData, tags: updated});
+                        }}
+                        className="hover:bg-cyan-200 rounded-full p-0.5"
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Add tags (press Enter to add)"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                      e.preventDefault();
+                      const newTag = e.currentTarget.value.trim();
+                      if (!formData.tags.includes(newTag)) {
+                        setFormData({...formData, tags: [...formData.tags, newTag]});
+                      }
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+                <p className="text-xs text-muted-foreground">Tags help categorize and search partners. Press Enter to add a tag.</p>
+              </div>
+
               {/* Contacts */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground">Primary Contact</label>
@@ -291,16 +447,208 @@ export default function PartnersPage() {
           </div>
         )}
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-3 text-muted-foreground" size={18} />
-          <input
-            type="text"
-            placeholder="Search partners by name or contact..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-          />
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          {/* Main Search Bar */}
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-3 text-muted-foreground" size={18} />
+              <input
+                type="text"
+                placeholder="Search partners by name, contact, or tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+            </div>
+            <button
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              className={clsx(
+                "px-4 py-2.5 border rounded-lg flex items-center gap-2 transition-colors",
+                showAdvancedSearch
+                  ? "bg-cyan-50 border-cyan-200 text-cyan-700"
+                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+              )}
+            >
+              <Filter size={16} />
+              Filters
+              <ChevronDown size={14} className={clsx("transition-transform", showAdvancedSearch && "rotate-180")} />
+            </button>
+            <button
+              onClick={() => setShowSaveSearch(true)}
+              className="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Save size={16} />
+              Save Search
+            </button>
+          </div>
+
+          {/* Saved Searches */}
+          {savedSearches.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm text-muted-foreground flex items-center gap-1">
+                <Bookmark size={14} />
+                Saved searches:
+              </span>
+              {savedSearches.map((search) => (
+                <button
+                  key={search.id}
+                  onClick={() => handleLoadSearch(search)}
+                  className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-sm flex items-center gap-1 transition-colors"
+                >
+                  {search.name}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSearch(search.id);
+                    }}
+                    className="ml-1 hover:bg-slate-300 rounded-full p-0.5"
+                  >
+                    <X size={12} />
+                  </button>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Advanced Filters */}
+          {showAdvancedSearch && (
+            <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Partner Type</label>
+                  <select
+                    value={filters.partnerType}
+                    onChange={(e) => setFilters({...filters, partnerType: e.target.value})}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="">All Types</option>
+                    <option value="Educational Non-Profit">Educational Non-Profit</option>
+                    <option value="Corporate">Corporate</option>
+                    <option value="Government">Government</option>
+                    <option value="Community Organization">Community Organization</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Status</label>
+                  <select
+                    value={filters.partnerStatus}
+                    onChange={(e) => setFilters({...filters, partnerStatus: e.target.value})}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">School Type</label>
+                  <select
+                    value={filters.schoolType}
+                    onChange={(e) => setFilters({...filters, schoolType: e.target.value})}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="">All Types</option>
+                    <option value="High School">High School</option>
+                    <option value="Vocational">Vocational</option>
+                    <option value="Community College">Community College</option>
+                    <option value="University">University</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Early Release</label>
+                  <select
+                    value={filters.earlyReleaseEligible}
+                    onChange={(e) => setFilters({...filters, earlyReleaseEligible: e.target.value})}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="">All</option>
+                    <option value="true">Eligible</option>
+                    <option value="false">Not Eligible</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Tags Filter */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Tags</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {filters.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => removeTagFilter(tag)}
+                        className="hover:bg-cyan-200 rounded-full p-0.5"
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allTags.filter(tag => !filters.tags.includes(tag)).map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => addTagFilter(tag)}
+                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full text-xs transition-colors"
+                    >
+                      + {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-slate-600 hover:text-slate-800 text-sm font-medium"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Save Search Modal */}
+          {showSaveSearch && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Save Search</h3>
+                <input
+                  type="text"
+                  placeholder="Enter search name..."
+                  value={saveSearchName}
+                  onChange={(e) => setSaveSearchName(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveSearch()}
+                />
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleSaveSearch}
+                    className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white py-2 rounded-lg font-medium"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSaveSearch(false);
+                      setSaveSearchName('');
+                    }}
+                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-foreground rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Partners Grid */}
@@ -315,10 +663,31 @@ export default function PartnersPage() {
               <div key={partner.id} className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground">{partner.organizationName}</h3>
-                    {partner.schoolType && (
-                      <p className="text-sm text-muted-foreground mt-1">{partner.schoolType}</p>
-                    )}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground">{partner.organizationName}</h3>
+                        {partner.schoolType && (
+                          <p className="text-sm text-muted-foreground mt-1">{partner.schoolType}</p>
+                        )}
+                      </div>
+                      {partner.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {partner.tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-2 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {partner.tags.length > 3 && (
+                            <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-full text-xs">
+                              +{partner.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     {partner.contacts.length > 0 && (
                       <div className="mt-3 space-y-2">
                         {partner.contacts.map((contact) => (

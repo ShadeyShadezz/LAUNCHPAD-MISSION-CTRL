@@ -5,6 +5,7 @@ import { Plus, Mail, ClipboardList, AlertCircle, Users, TrendingUp, ArrowRight, 
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { api } from '@/lib/api';
+import { useAuth } from '@/app/context/AuthContext';
 
 type Interaction = {
   id: string;
@@ -16,6 +17,7 @@ type Interaction = {
 };
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     recentInteractions: Interaction[];
@@ -45,7 +47,7 @@ export default function Dashboard() {
     return () => controller.abort();
   }, [fetchDashboardData]);
 
-  const userData = { fullName: 'Test User', role: 'Administrator' };
+
 
   const stats = {
     activeStudents: 0,
@@ -69,15 +71,15 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+      <div className="max-w-7xl mx-auto px-8 py-12 space-y-12">
         {/* Welcome */}
         <section className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
             <p className="mt-2 text-base text-muted-foreground leading-relaxed">
-              Welcome back, <span className="font-medium text-foreground">{userData.fullName}</span>
+              Welcome back, <span className="font-medium text-foreground">{user?.fullName}</span>
               <span className="ml-3 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary">
-                {userData.role}
+                {user?.role}
               </span>
             </p>
           </div>
@@ -94,7 +96,7 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <section>
           <h2 className="text-base font-semibold text-muted-foreground mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {quickActions.map((action) => {
               const Icon = action.icon;
               return (

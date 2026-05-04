@@ -4,14 +4,40 @@ import { Search } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 
+interface Partner {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  primaryContact: string;
+  email: string;
+}
+
+interface Interaction {
+  id: string;
+  partner: string;
+  type: string;
+  staff: string;
+  notes: string;
+  date: string;
+}
+
+interface Student {
+  id: string;
+  name: string;
+  cohort: string;
+  partner: string;
+  status: string;
+}
+
 const SearchPage = () => {
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
   const searchResults = {
-    partners: [],
-    interactions: [],
-    students: [],
+    partners: [] as Partner[],
+    interactions: [] as Interaction[],
+    students: [] as Student[],
   };
 
   const tabs = [

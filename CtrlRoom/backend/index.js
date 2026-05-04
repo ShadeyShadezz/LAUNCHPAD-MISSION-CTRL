@@ -718,6 +718,150 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+// Saved Search Endpoints
+app.get('/api/saved-searches/:searchType', authenticateToken, async (req, res) => {
+  const { searchType } = req.params;
+  try {
+    const savedSearches = await prisma.savedSearch.findMany({
+      where: {
+        userId: req.user.id,
+        searchType
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+    res.json(savedSearches);
+  } catch (error) {
+    console.error('Error fetching saved searches:', error);
+    res.status(500).json({ error: 'Failed to fetch saved searches' });
+  }
+});
+
+app.post('/api/saved-searches', authenticateToken, async (req, res) => {
+  const { name, searchType, filters, isDefault = false } = req.body;
+  try {
+    // If setting as default, unset other defaults for this user and search type
+    if (isDefault) {
+      await prisma.savedSearch.updateMany({
+        where: {
+          userId: req.user.id,
+          searchType,
+          isDefault: true
+        },
+        data: { isDefault: false }
+      });
+    }
+
+    const savedSearch = await prisma.savedSearch.create({
+      data: {
+        userId: req.user.id,
+        name,
+        searchType,
+        filters,
+        isDefault
+      }
+    });
+
+    // Log the creation
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'ADDED',
+        targetType: 'saved_search',
+        targetId: savedSearch.id,
+        targetName: savedSearch.name
+      }
+    });
+
+    res.json(savedSearch);
+  } catch (error) {
+    console.error('Error creating saved search:', error);
+    res.status(500).json({ error: 'Failed to create saved search' });
+  }
+});
+
+app.put('/api/saved-searches/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { name, filters, isDefault = false } = req.body;
+  try {
+    const existingSearch = await prisma.savedSearch.findUnique({
+      where: { id }
+    });
+
+    if (!existingSearch || existingSearch.userId !== req.user.id) {
+      return res.status(404).json({ error: 'Saved search not found' });
+    }
+
+    // If setting as default, unset other defaults for this user and search type
+    if (isDefault) {
+      await prisma.savedSearch.updateMany({
+        where: {
+          userId: req.user.id,
+          searchType: existingSearch.searchType,
+          isDefault: true,
+          id: { not: id }
+        },
+        data: { isDefault: false }
+      });
+    }
+
+    const savedSearch = await prisma.savedSearch.update({
+      where: { id },
+      data: {
+        name,
+        filters,
+        isDefault
+      }
+    });
+
+    // Log the update
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'EDITED',
+        targetType: 'saved_search',
+        targetId: savedSearch.id,
+        targetName: savedSearch.name
+      }
+    });
+
+    res.json(savedSearch);
+  } catch (error) {
+    console.error('Error updating saved search:', error);
+    res.status(500).json({ error: 'Failed to update saved search' });
+  }
+});
+
+app.delete('/api/saved-searches/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const savedSearch = await prisma.savedSearch.findUnique({
+      where: { id }
+    });
+
+    if (!savedSearch || savedSearch.userId !== req.user.id) {
+      return res.status(404).json({ error: 'Saved search not found' });
+    }
+
+    await prisma.savedSearch.delete({ where: { id } });
+
+    // Log the deletion
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: 'DELETED',
+        targetType: 'saved_search',
+        targetId: savedSearch.id,
+        targetName: savedSearch.name
+      }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting saved search:', error);
+    res.status(500).json({ error: 'Failed to delete saved search' });
+  }
+});
+
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully');

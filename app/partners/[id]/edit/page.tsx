@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, X } from 'lucide-react';
+import { Button } from '@/app/components/Button';
 
 interface Contact {
   id?: string;
@@ -43,7 +44,7 @@ export default function EditPartnerPage() {
 
   const fetchPartner = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/partners/${partnerId}`);
+      const res = await fetch(`/api/partners/${partnerId}`);
       if (res.ok) {
         const partner = await res.json();
         setFormData(partner);
@@ -76,10 +77,11 @@ export default function EditPartnerPage() {
         })),
       };
 
-      const res = await fetch(`http://localhost:5000/api/partners/${partnerId}`, {
+      const res = await fetch(`/api/partners/${partnerId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(localStorage.getItem('authToken') ? { Authorization: `Bearer ${localStorage.getItem('authToken')}` } : {}),
         },
         body: JSON.stringify(partnerData),
       });
@@ -137,7 +139,7 @@ export default function EditPartnerPage() {
           <p className="text-muted-foreground mb-4">The partner you're looking for doesn't exist.</p>
           <Link
             href="/partners"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
             <ArrowLeft size={16} />
             Back to Partners
@@ -148,9 +150,9 @@ export default function EditPartnerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-8 py-10">
-        <div className="mb-8">
+    <div className="lmc-page bg-background">
+      <div className="lmc-page-inner max-w-2xl">
+        <div>
           <Link
             href="/partners"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
@@ -158,13 +160,13 @@ export default function EditPartnerPage() {
             <ArrowLeft size={16} />
             Back to Partners
           </Link>
-          <h1 className="text-3xl font-bold text-foreground">Edit Partner</h1>
+          <h1 className="lmc-page-title">Edit Partner</h1>
           <p className="mt-2 text-muted-foreground">Update partner information and contacts.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="bg-card border border-border rounded-lg p-6 space-y-6">
-            <h2 className="text-xl font-semibold text-foreground">Organization Details</h2>
+          <div className="lmc-surface p-6 space-y-6">
+            <h2 className="text-base md:text-lg font-bold text-foreground">Organization Details</h2>
 
             <div className="space-y-4">
               <div>
@@ -177,7 +179,7 @@ export default function EditPartnerPage() {
                   required
                   value={formData.organizationName}
                   onChange={(e) => setFormData(prev => prev ? { ...prev, organizationName: e.target.value } : null)}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="lmc-input text-sm"
                   placeholder="Enter organization name"
                 />
               </div>
@@ -191,7 +193,7 @@ export default function EditPartnerPage() {
                   id="websiteUrl"
                   value={formData.websiteUrl}
                   onChange={(e) => setFormData(prev => prev ? { ...prev, websiteUrl: e.target.value } : null)}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="lmc-input text-sm"
                   placeholder="https://example.com"
                 />
               </div>
@@ -204,7 +206,7 @@ export default function EditPartnerPage() {
                   id="schoolType"
                   value={formData.schoolType}
                   onChange={(e) => setFormData(prev => prev ? { ...prev, schoolType: e.target.value } : null)}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="lmc-input text-sm"
                 >
                   <option value="">Select school type</option>
                   <option value="High School">High School</option>
@@ -217,8 +219,8 @@ export default function EditPartnerPage() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-lg p-6 space-y-6">
-            <h2 className="text-xl font-semibold text-foreground">Contacts</h2>
+          <div className="lmc-surface p-6 space-y-6">
+            <h2 className="text-base md:text-lg font-bold text-foreground">Contacts</h2>
 
             {formData.contacts.length > 0 && (
               <div className="space-y-3">
@@ -241,7 +243,7 @@ export default function EditPartnerPage() {
             )}
 
             <div className="border-t border-border pt-6 space-y-4">
-              <h3 className="text-lg font-medium text-foreground">Add Contact</h3>
+              <h3 className="text-base md:text-lg font-bold text-foreground">Add Contact</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -250,7 +252,7 @@ export default function EditPartnerPage() {
                     type="text"
                     value={newContact.name}
                     onChange={(e) => setNewContact(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="lmc-input text-sm"
                     placeholder="Contact name"
                   />
                 </div>
@@ -261,7 +263,7 @@ export default function EditPartnerPage() {
                     type="email"
                     value={newContact.email}
                     onChange={(e) => setNewContact(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="lmc-input text-sm"
                     placeholder="contact@example.com"
                   />
                 </div>
@@ -272,7 +274,7 @@ export default function EditPartnerPage() {
                     type="text"
                     value={newContact.title}
                     onChange={(e) => setNewContact(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="lmc-input text-sm"
                     placeholder="Job title"
                   />
                 </div>
@@ -282,7 +284,7 @@ export default function EditPartnerPage() {
                   <select
                     value={newContact.contactType}
                     onChange={(e) => setNewContact(prev => ({ ...prev, contactType: e.target.value as Contact['contactType'] }))}
-                    className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="lmc-input text-sm"
                   >
                     <option value="PRIMARY">Primary</option>
                     <option value="LEADERSHIP">Leadership</option>
@@ -291,31 +293,28 @@ export default function EditPartnerPage() {
                 </div>
               </div>
 
-              <button
+              <Button
                 type="button"
                 onClick={addContact}
                 disabled={!newContact.name || !newContact.email}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="outline"
+                icon={<Plus size={16} />}
               >
-                <Plus size={16} />
                 Add Contact
-              </button>
+              </Button>
             </div>
           </div>
 
           <div className="flex gap-4">
-            <button
+            <Button
               type="submit"
               disabled={loading || !formData.organizationName}
-              className="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1"
             >
               {loading ? 'Updating Partner...' : 'Update Partner'}
-            </button>
-            <Link
-              href="/partners"
-              className="px-6 py-3 bg-muted text-muted-foreground rounded-lg font-medium hover:bg-muted/80 transition-colors"
-            >
-              Cancel
+            </Button>
+            <Link href="/partners">
+              <Button variant="secondary">Cancel</Button>
             </Link>
           </div>
         </form>

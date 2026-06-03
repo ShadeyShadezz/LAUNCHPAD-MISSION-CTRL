@@ -1,229 +1,206 @@
 'use client';
 
-import { Search } from 'lucide-react';
-import { useState } from 'react';
 import Link from 'next/link';
+import { Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
-interface Partner {
+type PartnershipContact = {
   id: string;
   name: string;
-  type: string;
-  status: string;
-  primaryContact: string;
   email: string;
-}
-
-interface Interaction {
-  id: string;
-  partner: string;
-  type: string;
-  staff: string;
-  notes: string;
-  date: string;
-}
-
-interface Student {
-  id: string;
-  name: string;
-  cohort: string;
-  partner: string;
-  status: string;
-}
-
-const SearchPage = () => {
-  const [query, setQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
-
-  const searchResults = {
-    partners: [] as Partner[],
-    interactions: [] as Interaction[],
-    students: [] as Student[],
-  };
-
-  const tabs = [
-    { id: 'all', label: 'All Results', count: 0 },
-    { id: 'partners', label: 'Partners', count: 0 },
-    { id: 'interactions', label: 'Interactions', count: 0 },
-    { id: 'students', label: 'Students', count: 0 },
-  ];
-
-  const getResults = () => {
-    if (activeTab === 'all') {
-      return { partners: searchResults.partners, interactions: searchResults.interactions, students: searchResults.students };
-    }
-    const key = activeTab as keyof typeof searchResults;
-    return { [activeTab]: searchResults[key] };
-  };
-
-  return (
-    <div className="min-h-screen p-8" style={{ backgroundColor: 'var(--background)' }}>
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>
-            Global Search
-          </h1>
-          <div className="relative">
-            <Search className="absolute left-4 top-3" size={20} style={{ color: 'var(--muted-foreground)' }} />
-            <input
-              type="text"
-              placeholder="Search partners, interactions, students..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 text-lg border rounded-lg focus:outline-none focus:ring-2"
-              style={{
-                backgroundColor: 'var(--input)',
-                borderColor: 'var(--border)',
-                color: 'var(--foreground)',
-              }}
-            />
-          </div>
-        </div>
-
-        {query && (
-          <>
-            {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b" style={{ borderColor: 'var(--border)' }}>
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className="px-4 py-3 font-semibold border-b-2 transition-all"
-                  style={{
-                    borderColor: activeTab === tab.id ? 'var(--primary)' : 'transparent',
-                    color: activeTab === tab.id ? 'var(--primary)' : 'var(--muted-foreground)',
-                  }}
-                >
-                  {tab.label} ({tab.count})
-                </button>
-              ))}
-            </div>
-
-            {/* Results */}
-            <div className="space-y-4">
-              {getResults().partners?.map((partner) => (
-                <Link
-                  key={partner.id}
-                  href={`/partners/${partner.id}`}
-                  className="rounded-lg border p-6 transition-all hover:shadow-lg block"
-                  style={{
-                    backgroundColor: 'var(--card)',
-                    borderColor: 'var(--border)',
-                  }}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
-                        {partner.name}
-                      </h3>
-                      <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-                        {partner.type} · {partner.status}
-                      </p>
-                      <p className="text-sm mt-2" style={{ color: 'var(--muted-foreground)' }}>
-                        Primary: {partner.primaryContact} ({partner.email})
-                      </p>
-                    </div>
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold"
-                      style={{
-                        backgroundColor: 'rgba(14, 165, 164, 0.1)',
-                        color: 'var(--primary)',
-                      }}
-                    >
-                      Partner
-                    </span>
-                  </div>
-                </Link>
-              ))}
-
-              {getResults().interactions?.map((interaction) => (
-                <Link
-                  key={interaction.id}
-                  href={`/interactions/${interaction.id}`}
-                  className="rounded-lg border p-6 transition-all hover:shadow-lg block"
-                  style={{
-                    backgroundColor: 'var(--card)',
-                    borderColor: 'var(--border)',
-                  }}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
-                        {interaction.partner} - {interaction.type}
-                      </h3>
-                      <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
-                        By {interaction.staff} on {new Date(interaction.date).toLocaleDateString()}
-                      </p>
-                      <p className="text-sm mt-2" style={{ color: 'var(--muted-foreground)' }}>
-                        {interaction.notes}
-                      </p>
-                    </div>
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold"
-                      style={{
-                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                        color: 'var(--accent)',
-                      }}
-                    >
-                      Interaction
-                    </span>
-                  </div>
-                </Link>
-              ))}
-
-              {getResults().students?.map((student) => (
-                <Link
-                  key={student.id}
-                  href={`/students/${student.id}`}
-                  className="rounded-lg border p-6 transition-all hover:shadow-lg block"
-                  style={{
-                    backgroundColor: 'var(--card)',
-                    borderColor: 'var(--border)',
-                  }}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
-                        {student.name}
-                      </h3>
-                      <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-                        {student.cohort} · {student.partner}
-                      </p>
-                      <p className="text-sm mt-2" style={{ color: 'var(--muted-foreground)' }}>
-                        Status: {student.status}
-                      </p>
-                    </div>
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold"
-                      style={{
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        color: 'var(--success)',
-                      }}
-                    >
-                      Student
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </>
-        )}
-
-        {!query && (
-          <div
-            className="rounded-lg border p-12 text-center"
-            style={{
-              backgroundColor: 'var(--card)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <p style={{ color: 'var(--muted-foreground)' }}>
-              Type in the search box above to find partners, interactions, or students.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  contactType: string;
 };
 
-export default SearchPage;
+type Partnership = {
+  id: string;
+  organizationName?: string;
+  partnerStatus?: string | null;
+  courseNumber?: number | null;
+  contacts?: PartnershipContact[];
+};
+
+
+import { useAuth } from '@/app/context/AuthContext';
+import { useRouter } from 'next/navigation';
+
+export default function SearchPage() {
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+  const [partnerships, setPartnerships] = useState<Partnership[]>([]);
+  const [isDatabaseLoading, setIsDatabaseLoading] = useState(true);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.push('/login');
+    }
+  }, [isAuthLoading, user, router]);
+
+  useEffect(() => {
+    if (!user) {
+      setIsDatabaseLoading(false);
+      return;
+    }
+
+    const fetchPartnerships = async () => {
+      setIsDatabaseLoading(true);
+      setDbError(null);
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch('/api/partnerships', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!response.ok) {
+          setDbError('Failed to load partnerships.');
+          setPartnerships([]);
+          return;
+        }
+        const data = await response.json();
+        setPartnerships(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setDbError('Database link latent.');
+        setPartnerships([]);
+      } finally {
+        setIsDatabaseLoading(false);
+      }
+    };
+    fetchPartnerships();
+  }, [user]);
+
+  const filteredResults = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) {
+      return [];
+    }
+
+    return partnerships.filter((partnership) => {
+      const orgName = (partnership.organizationName || '').toLowerCase();
+      const status = (partnership.partnerStatus || '').toLowerCase();
+      const courseNumber = String(partnership.courseNumber ?? '').toLowerCase();
+
+      const contactMatch = (partnership.contacts || []).some((contact) => {
+        const contactName = (contact.name || '').toLowerCase();
+        const contactEmail = (contact.email || '').toLowerCase();
+        return (
+          contactName.includes(normalized) ||
+          contactEmail.includes(normalized)
+        );
+      });
+
+      return (
+        orgName.includes(normalized) ||
+        status.includes(normalized) ||
+        courseNumber.includes(normalized) ||
+        contactMatch
+      );
+    });
+  }, [partnerships, query]);
+
+  // Safe Return Guard: Isolate auth/session from data loading
+  if (isAuthLoading) {
+    return <div className="lmc-page text-muted-foreground">Synchronizing Mission Secure Channel...</div>;
+  }
+  if (!user) {
+    return null;
+  }
+
+  if (isDatabaseLoading) {
+    return <div className="lmc-page text-muted-foreground">Loading search interface...</div>;
+  }
+
+  return (
+    <div className="lmc-page">
+      <div className="lmc-page-accent" />
+      <main className="lmc-page-inner max-w-7xl">
+        {dbError && (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive font-semibold">
+            {dbError} <button className="ml-2 underline" onClick={() => window.location.reload()}>Retry</button>
+          </div>
+        )}
+        <div>
+          <h1 className="lmc-page-title">Global Deep Search</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+          Search organization names, statuses, course numbers, and nested contact records in real time.
+          </p>
+        </div>
+
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <input
+            type="text"
+            placeholder="Type anything: name, status, course number, or contact email..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="lmc-input pl-11 pr-4 py-3"
+          />
+        </div>
+
+        {!dbError && query.trim().length === 0 && (
+          <div className="lmc-surface px-4 py-3 text-muted-foreground">
+            Enter a query to begin deep search.
+          </div>
+        )}
+
+        {!dbError && query.trim().length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {filteredResults.length} result{filteredResults.length === 1 ? '' : 's'} found
+            </p>
+
+            {filteredResults.length === 0 ? (
+              <div className="lmc-surface px-4 py-3 text-muted-foreground">
+                No matches found for your query.
+              </div>
+            ) : (
+              filteredResults.map((partnership) => (
+                <div
+                  key={partnership.id}
+                  className="lmc-surface lmc-surface--interactive px-5 py-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate text-lg font-bold text-foreground">
+                        {partnership.organizationName || 'Unnamed Partnership'}
+                      </h2>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                        <span className="text-sm text-muted-foreground">
+                          Status: <span className="font-semibold text-foreground">{partnership.partnerStatus || 'Unspecified'}</span>
+                        </span>
+                        <span className="text-xs text-muted-foreground">&middot;</span>
+                        <span className="text-sm text-muted-foreground">
+                          Course: <span className="font-semibold text-foreground">{partnership.courseNumber ?? 'N/A'}</span>
+                        </span>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/partnerships/${partnership.id}`}
+                      className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-3.5 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors shrink-0"
+                    >
+                      Details
+                    </Link>
+                  </div>
+
+                  {(partnership.contacts || []).length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(partnership.contacts || []).slice(0, 3).map((contact) => (
+                        <div
+                          key={contact.id}
+                          className="rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-xs"
+                        >
+                          <span className="font-semibold text-foreground">{contact.name}</span>
+                          <span className="mx-1 text-muted-foreground">&middot;</span>
+                          <span className="text-muted-foreground">{contact.email}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

@@ -1,140 +1,171 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, Mail, Settings, Shield, LogOut, FileText } from 'lucide-react';
+import {
+  LayoutDashboard, Shield, Mail, FileText, Settings, LogOut,
+  StickyNote, Building2, ListChecks, ChevronLeft, Rocket,
+  PanelLeftClose, PanelLeft
+} from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/app/context/AuthContext';
 
-
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/partnerships', label: 'Partnerships', icon: Shield },
-  { href: '/search', label: 'Search', icon: Mail },
+  { href: '/partners', label: 'Partners', icon: Building2 },
+  { href: '/partnerships', label: 'Display', icon: Shield },
   { href: '/email', label: 'Email', icon: Mail },
+  { href: '/interactions', label: 'Interactions', icon: ListChecks },
+  { href: '/staff-notes', label: 'Staff Notes', icon: StickyNote },
   { href: '/activity-log', label: 'Activity Log', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
-const Sidebar = () => {
+export function SidebarOverlay({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) {
+  if (!sidebarOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-40 bg-black/70 transition-opacity duration-300"
+      onClick={() => setSidebarOpen(false)}
+      aria-hidden="true"
+    />
+  );
+}
+
+export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const { logout, user } = useAuth();
   const router = useRouter();
+  const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = () => {
     logout();
     router.push('/login');
+    onClose();
+  };
+
+  const handleNavClick = () => {
+    onClose();
+  };
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard') return pathname === href;
+    return pathname === href || pathname.startsWith(href + '/');
   };
 
   return (
     <>
-      {/* Sidebar */}
-      <aside className="sidebar fixed md:relative md:translate-x-0 h-screen z-40 bg-[var(--sidebar)] border-r border-[var(--sidebar-border)] min-w-[140px] max-w-[200px] w-[180px]">
-        <div className="flex flex-col h-full">
-          {/* Header - Logo */}
-          <div className="sidebar-header border-b border-[var(--sidebar-border)]">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1 min-w-0"
-            >
-              <div className="sidebar-logo flex-shrink-0 bg-gradient-to-br from-[var(--primary)] to-cyan-400">
-                LMC
-              </div>
-              <div className="sidebar-title min-w-0">
-                <h1 className="font-semibold text-sm leading-tight text-[var(--sidebar-foreground)]">
-                  Launchpad
-                </h1>
-                <p className="text-xs mt-0.5 text-[var(--muted-foreground)]">
-                  Mission Control
-                </p>
-              </div>
-            </Link>
-          </div>
+      <SidebarOverlay sidebarOpen={isOpen} setSidebarOpen={onClose} />
 
-          {/* Navigation */}
-          <nav className="sidebar-nav flex-1 overflow-y-auto">
+      <aside
+        aria-label="Main navigation"
+        className={clsx(
+          'fixed top-0 left-0 z-50 h-full overflow-hidden',
+          'sidebar-glass',
+          'transition-all duration-300 ease-in-out',
+          'flex flex-col',
+          collapsed ? 'sidebar-collapsed' : 'w-72'
+        )}
+      >
+        {/* ─── BRAND ─── */}
+        <div className="sidebar-brand flex items-center gap-3">
+          <div className="sidebar-brand-icon">
+            <Rocket size={16} className="text-primary-foreground" strokeWidth={2} />
+          </div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="sidebar-brand-name">Mission Control</span>
+            <span className="sidebar-brand-sub">Launchpad</span>
+          </div>
+          <button
+            onClick={() => setCollapsed(v => !v)}
+            className="sidebar-collapse-btn"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <PanelLeftClose size={16} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* ─── SECTION HEADER ─── */}
+        <div className="sidebar-section-header">Navigation</div>
+
+        {/* ─── NAVIGATION ─── */}
+        <nav className="sidebar-nav">
+          <div className="flex flex-col gap-0.5">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-
+              const active = isActive(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-
-                  className={clsx(
-                    'nav-item flex items-center gap-2 px-2 py-2 rounded-md text-xs font-medium transition-all'
-                  )}
-                  style={{
-                    backgroundColor: isActive ? 'var(--sidebar-primary)' : 'transparent',
-                    color: isActive ? 'white' : 'var(--sidebar-foreground)',
-                    boxShadow: isActive ? '0 2px 8px rgba(14, 165, 164, 0.2)' : 'none',
-                  }}
+                  onClick={handleNavClick}
+                  data-tooltip={collapsed ? item.label : undefined}
+                  className={clsx('sidebar-link', active && 'active')}
                 >
-                  <Icon size={16} strokeWidth={1.25} />
-                  <span>{item.label}</span>
+                  <span className="sidebar-link-icon">
+                    <Icon size={16} strokeWidth={active ? 2 : 1.5} />
+                  </span>
+                  <span className="sidebar-link-label">{item.label}</span>
+                  {active && <span className="sidebar-link-indicator" />}
                 </Link>
               );
             })}
-          </nav>
-
-          {/* Footer - User */}
-          <div
-            className="sidebar-footer p-3 space-y-3"
-            style={{
-              borderTop: '1px solid var(--sidebar-border)',
-            }}
-          >
-            <div
-              className="user-card flex items-center gap-3 p-3 rounded-md"
-              style={{
-                backgroundColor: 'var(--sidebar-hover)',
-              }}
-            >
-              <div
-                className="user-avatar flex-shrink-0"
-                style={{
-                  background: 'linear-gradient(135deg, var(--primary), #06b6d4)',
-                }}
-              >
-                {user?.email?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
-              <div className="user-info flex-1 min-w-0">
-                <p className="text-sm font-medium m-0 truncate" style={{ color: 'var(--sidebar-foreground)' }}>
-                  {user?.email?.split('@')[0] || 'User'}
-                </p>
-                <p className="text-xs m-0 mt-1" style={{ color: 'var(--muted-foreground)' }}>
-                  Staff
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all"
-              style={{
-                backgroundColor: 'var(--hover-bg)',
-                color: 'var(--sidebar-foreground)',
-                border: '1px solid var(--sidebar-border)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#fee2e2';
-                e.currentTarget.style.color = '#dc2626';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
-                e.currentTarget.style.color = 'var(--sidebar-foreground)';
-              }}
-            >
-              <LogOut size={16} />
-              Sign Out
-            </button>
           </div>
+        </nav>
+
+        {/* ─── FOOTER: User + Logout ─── */}
+        <div className="sidebar-footer">
+          <div className={clsx(
+            'flex items-center gap-2.5 px-2 py-1.5 rounded-lg',
+            !collapsed && 'px-2.5'
+          )}>
+            <div className="sidebar-user-avatar">
+              {user?.email?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+            <div className="sidebar-user-info flex flex-col min-w-0 flex-1">
+              <span className="sidebar-user-name">
+                {user?.fullName || user?.email?.split('@')[0] || 'User'}
+              </span>
+              <span className="sidebar-user-email">
+                {user?.email || ''}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="sidebar-logout-link"
+            data-tooltip={collapsed ? 'Sign Out' : undefined}
+          >
+            <LogOut size={14} strokeWidth={1.5} />
+            <span className="sidebar-logout-label">Sign Out</span>
+          </button>
         </div>
       </aside>
-
     </>
   );
-};
+}
 
-export default Sidebar;
-
+export function SidebarTrigger({ onClick, visible }: { onClick: () => void; visible: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className={clsx(
+        'fixed top-6 left-0 z-30',
+        'flex items-center justify-center',
+        'w-11 h-14 rounded-r-xl',
+        'bg-gradient-to-r from-emerald-600 to-emerald-500',
+        'border-0',
+        'text-primary-foreground shadow-lg shadow-emerald-500/25',
+        'hover:shadow-xl hover:shadow-emerald-500/30 hover:brightness-110',
+        'active:brightness-95',
+        'transition-all duration-200',
+        visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      )}
+      aria-label="Open sidebar"
+    >
+      <PanelLeft size={18} strokeWidth={2} />
+    </button>
+  );
+}

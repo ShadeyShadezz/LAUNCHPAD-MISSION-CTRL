@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Shield, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
-import { Button } from '@/app/components/Button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -45,8 +44,8 @@ export default function LoginPage() {
 
       {/* Login Card */}
       <div className="relative z-10 max-w-md w-full">
-        <div className="bg-card rounded-xl border border-border shadow-xl overflow-hidden">
-          <div className="p-12 space-y-10">
+        <div className="lmc-surface overflow-hidden">
+          <div className="p-10 space-y-8">
             {/* Header */}
             <div className="text-center space-y-3">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-primary/10">
@@ -88,7 +87,7 @@ export default function LoginPage() {
                     placeholder="test@launchpad.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-2.5 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground placeholder:text-muted-foreground/50 text-sm"
+                    className="lmc-input pl-12 pr-4 py-2.5 text-sm placeholder:text-muted-foreground/50"
                     required
                   />
                 </div>
@@ -106,7 +105,7 @@ export default function LoginPage() {
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-2.5 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground placeholder:text-muted-foreground/50 text-sm"
+                    className="lmc-input pl-12 pr-4 py-2.5 text-sm placeholder:text-muted-foreground/50"
                     required
                   />
                 </div>
@@ -116,7 +115,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !email || !password}
-                className="w-full px-4 py-2.5 rounded-lg font-medium text-white bg-primary shadow-sm hover:shadow hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-2 text-sm"
+                className="w-full h-10 px-4 rounded-lg font-semibold text-primary-foreground bg-primary shadow-sm hover:shadow hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-[0.99] flex items-center justify-center gap-2 text-sm"
               >
                 {loading ? (
                   <>

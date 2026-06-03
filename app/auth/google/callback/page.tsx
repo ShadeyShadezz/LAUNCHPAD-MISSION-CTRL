@@ -42,10 +42,10 @@ export default function GoogleAuthCallback() {
   }, [searchParams, router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center space-y-4">
+    <div className="lmc-page flex items-center justify-center">
+      <div className="lmc-surface px-10 py-12 text-center space-y-4 max-w-md">
         <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mx-auto" />
-        <p style={{ color: 'var(--muted-foreground)' }}>{status}</p>
+        <p className="text-muted-foreground text-sm font-medium">{status}</p>
       </div>
     </div>
   );

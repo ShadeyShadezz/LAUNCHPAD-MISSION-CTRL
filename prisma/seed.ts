@@ -1,12 +1,44 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { readFile } from 'node:fs/promises';
 
 const prisma = new PrismaClient();
 
+type DummyPartnerSeed = {
+  organizationName: string;
+  logoUrl?: string | null;
+  industry?: string | null;
+  description?: string | null;
+  websiteUrl?: string | null;
+  schoolType?: string | null;
+  officialStatusDate?: string | null;
+  partnerType?: string | null;
+  partnerStatus?: string | null;
+  currentStatusNotes?: string | null;
+  earlyReleaseForSeniors?: boolean;
+  courseNumber?: number | null;
+  tags?: string[];
+  contacts: Array<{
+    name: string;
+    email: string;
+    title?: string | null;
+    contactType: 'LEADERSHIP' | 'PRIMARY' | 'SECONDARY';
+  }>;
+};
+
+async function loadDummyPartners(): Promise<DummyPartnerSeed[]> {
+  const path = new URL('./data/dummyPartners.json', import.meta.url);
+  const raw = await readFile(path, 'utf8');
+  const parsed = JSON.parse(raw) as unknown;
+  return Array.isArray(parsed) ? (parsed as DummyPartnerSeed[]) : [];
+}
+
 async function main() {
+  const dummyPartners = await loadDummyPartners();
+
   // Create test user (test@launchpad.com / password123)
   const passwordHash = await bcrypt.hash('password123', 10);
-  const testUser = await prisma.user.upsert({
+  const adminUser = await prisma.user.upsert({
     where: { email: 'test@launchpad.com' },
     update: {},
     create: {
@@ -19,8 +51,20 @@ async function main() {
     },
   });
 
+  await prisma.user.upsert({
+    where: { email: 'coordinator@launchpad.com' },
+    update: {},
+    create: {
+      email: 'coordinator@launchpad.com',
+      passwordHash,
+      fullName: 'Program Coordinator',
+      role: 'PROGRAM_COORDINATOR',
+      title: 'Program Coordinator',
+      accessLevel: 'staff',
+    },
+  });
 
-  // Create 10 realistic tech organizations with upsert by unique name
+  // Legacy organization records are preserved, but Partner is now the source of truth.
   const organizations = [
     {
       name: 'Launchpad Technologies',
@@ -122,7 +166,99 @@ async function main() {
     });
   }
 
-  console.log('Seed data created successfully.');
+  // Move organization attributes into Partner records so Display uses Partner as canonical source.
+  const allOrganizations = await prisma.organization.findMany();
+  for (const org of allOrganizations) {
+    const existingPartner = await prisma.partner.findFirst({
+      where: { organizationName: org.name },
+      select: { id: true },
+    });
+
+    if (existingPartner) {
+      await prisma.partner.update({
+        where: { id: existingPartner.id },
+        data: {
+          logoUrl: org.logoUrl ?? null,
+          industry: org.industry ?? null,
+          description: org.description ?? null,
+          websiteUrl: org.website ?? null,
+          officialStatusDate: org.partnershipDate ?? null,
+          partnerStatus: org.status || 'Active',
+        },
+      });
+    } else {
+      const partner = await prisma.partner.create({
+        data: {
+          organizationName: org.name,
+          logoUrl: org.logoUrl ?? null,
+          industry: org.industry ?? null,
+          description: org.description ?? null,
+          websiteUrl: org.website ?? null,
+          officialStatusDate: org.partnershipDate ?? null,
+          partnerType: 'Legacy',
+          partnerStatus: org.status || 'Active',
+          currentStatusNotes: 'Migrated from Organization model during Partner-first consolidation.',
+          tags: ['Migrated', 'Organization'],
+          createdById: adminUser.id,
+        },
+      });
+
+      const fallbackEmailBase = org.name.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '');
+      await prisma.contact.create({
+        data: {
+          partnerId: partner.id,
+          contactType: 'PRIMARY',
+          name: `${org.name} Primary Contact`,
+          email: `partnerships@${fallbackEmailBase || 'organization'}.example`,
+          title: 'Partnership Contact',
+        },
+      });
+    }
+  }
+
+  // Seed deterministic dummy partners that should always exist on Partners/Display pages.
+  for (const partnerSeed of dummyPartners) {
+    const existing = await prisma.partner.findFirst({
+      where: { organizationName: partnerSeed.organizationName },
+      select: { id: true },
+    });
+
+    const data = {
+      organizationName: partnerSeed.organizationName,
+      logoUrl: partnerSeed.logoUrl ?? null,
+      industry: partnerSeed.industry ?? null,
+      description: partnerSeed.description ?? null,
+      websiteUrl: partnerSeed.websiteUrl ?? null,
+      schoolType: partnerSeed.schoolType ?? null,
+      officialStatusDate: partnerSeed.officialStatusDate ? new Date(partnerSeed.officialStatusDate) : null,
+      courseNumber: partnerSeed.courseNumber ?? null,
+      partnerType: partnerSeed.partnerType ?? null,
+      partnerStatus: partnerSeed.partnerStatus ?? 'Active',
+      currentStatusNotes: partnerSeed.currentStatusNotes ?? null,
+      earlyReleaseForSeniors: partnerSeed.earlyReleaseForSeniors ?? false,
+      tags: partnerSeed.tags ?? [],
+      createdById: adminUser.id,
+    };
+
+    const partner = existing
+      ? await prisma.partner.update({ where: { id: existing.id }, data })
+      : await prisma.partner.create({ data });
+
+    await prisma.contact.deleteMany({ where: { partnerId: partner.id } });
+    if (partnerSeed.contacts.length > 0) {
+      await prisma.contact.createMany({
+        data: partnerSeed.contacts.map((contact) => ({
+          partnerId: partner.id,
+          name: contact.name,
+          email: contact.email,
+          title: contact.title ?? null,
+          contactType: contact.contactType,
+        })),
+      });
+    }
+  }
+
+  console.log('Seed data created successfully. Partner records are now the canonical display source.');
 }
 
 main()

@@ -1,63 +1,76 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { config as env } from '@/app/lib/config';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecret-supersecret-supersecret';
+const JWT_SECRET = env.JWT_SECRET;
 
-export default async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get('token')?.value;
-  console.log('Middleware:', pathname, 'token:', !!token);
+/**
+ * Verify JWT from cookies or Authorization header.
+ * Returns decoded payload or null.
+ */
+export function verifyRequestToken(request: NextRequest) {
+  const token =
+    request.cookies.get('token')?.value ||
+    request.cookies.get('authToken')?.value ||
+    request.headers.get('authorization')?.split(' ')[1];
 
-  // --- API ROUTE HANDLING ---
-  // 1. Immediately pass through all API requests.
-  if (pathname.startsWith('/api')) {
-    console.log('API request, passing through');
-    return NextResponse.next();
-  }
-
-  // --- PAGE ROUTE GUARD LOGIC ---
-  // 2. Handle the login page specifically.
-  if (pathname === '/login') {
-    // If user is already authenticated, redirect them from login to the dashboard.
-    if (token) {
-      try {
-        jwt.verify(token, JWT_SECRET);
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-      } catch (error) {
-        // Invalid token, allow access to login
-      }
-    }
-    // Otherwise, allow access to the login page.
-    return NextResponse.next();
-  }
-
-  // 3. Protect all other pages.
-  // If there is no token or invalid, redirect to the login page.
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+  if (!token) return null;
 
   try {
-    jwt.verify(token, JWT_SECRET);
-    // 4. If a token exists and is valid, allow access to the requested page.
-    return NextResponse.next();
-  } catch (error) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return jwt.verify(token, JWT_SECRET) as { id: string; email: string; role: string };
+  } catch {
+    return null;
   }
+}
+
+/**
+ * Next.js middleware — protects routes and handles redirects.
+ */
+export default function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const payload = verifyRequestToken(request);
+
+  // Public routes — always allow
+  if (pathname === '/login' || pathname.startsWith('/api/auth')) {
+    // If already logged in and visiting /login, redirect to dashboard
+    if (pathname === '/login' && payload) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Allow public assets
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/images') ||
+    pathname.startsWith('/fonts') ||
+    pathname.startsWith('/favicon') ||
+    pathname === '/'
+  ) {
+    return NextResponse.next();
+  }
+
+  // Protected routes — require valid token
+  if (!payload) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images/ (image files)
-     * - fonts/ (font files)
-     * This ensures the middleware runs on all pages and API routes.
-     */
-    '/((?!_next/static|_next/image|favicon.ico|images|fonts).*)',
+    '/dashboard/:path*',
+    '/partnerships/:path*',
+    '/email/:path*',
+    '/partners/:path*',
+    '/interactions/:path*',
+    '/activity-log/:path*',
+    '/settings/:path*',
+    '/search/:path*',
+    '/admin/:path*',
+    '/login',
   ],
 };

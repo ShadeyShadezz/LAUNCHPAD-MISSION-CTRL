@@ -1,9 +1,13 @@
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-      <h1 className="text-4xl font-bold mb-4">Page Not Found</h1>
-      <p className="text-lg text-muted-foreground mb-8">Sorry, the page you are looking for does not exist.</p>
-      <a href="/dashboard" className="text-primary underline font-semibold">Return to Dashboard</a>
+    <div className="lmc-page flex items-center justify-center">
+      <div className="lmc-surface px-10 py-12 text-center max-w-xl">
+        <h1 className="text-4xl font-bold mb-3 text-foreground">Page Not Found</h1>
+        <p className="text-base text-muted-foreground mb-6">Sorry, the page you are looking for does not exist.</p>
+        <a href="/dashboard" className="inline-flex px-4 py-2 rounded-lg border border-primary/30 bg-primary/10 text-primary font-semibold transition-colors hover:bg-primary/20 no-underline">
+          Return to Dashboard
+        </a>
+      </div>
     </div>
   );
 }

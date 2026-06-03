@@ -1,25 +1,3 @@
-model Organization {
-  id               String   @id @default(uuid())
-  name             String   @unique
-  logoUrl          String?
-  industry         String?
-  partnershipDate  DateTime?
-  status           String   // e.g., 'Active', 'Pending'
-  description      String?
-  website          String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-}
-model EmailLog {
-  id        String   @id @default(uuid())
-  userId    String
-  to        String
-  subject   String
-  sentAt    DateTime @default(now())
-  // No email body/content stored for privacy
-  user      User     @relation(fields: [userId], references: [id])
-  @@index([userId])
-}
 generator client {
   provider = "prisma-client-js"
 }
@@ -29,11 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMINISTRATOR
-  PROGRAM_COORDINATOR
-  PARTNERSHIP_MANAGER
-  STAFF_USER
+model Organization {
+  id              String    @id @default(uuid())
+  name            String    @unique
+  logoUrl         String?
+  industry        String?
+  partnershipDate DateTime?
+  status          String
+  description     String?
+  website         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model EmailLog {
+  id      String   @id @default(uuid())
+  userId  String
+  to      String
+  subject String
+  sentAt  DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model User {
@@ -47,73 +42,162 @@ model User {
   accessLevel   String?
   createdAt     DateTime      @default(now())
   lastLogin     DateTime?
-  partners      Partner[]     @relation("CreatedBy")
-  interactions  Interaction[]
-  students      Student[]     @relation("AddedBy")
   activityLogs  ActivityLog[]
   emailDrafts   EmailDraft[]
-  savedSearches SavedSearch[]
   emailLogs     EmailLog[]
+  interactions  Interaction[]
+  partners      Partner[]     @relation("CreatedBy")
+  savedSearches SavedSearch[]
+  staffNotes    StaffNote[]
+  students      Student[]     @relation("AddedBy")
 }
 
 model Student {
-  id                    String        @id @default(uuid())
-  fullName              String
-  email                 String?
-  partner               Partner       @relation(fields: [partnerId], references: [id])
-  partnerId             String
-  status                StudentStatus @default(PENDING)
-  cohort                String?
-  earlyReleaseEligible  Boolean       @default(false)
-  addedByUser           User          @relation("AddedBy", fields: [addedById], references: [id])
-  addedById             String
-  addedDate             DateTime      @default(now())
-  notes                 String?
-  interactions          Interaction[] @relation("InteractionStudents")
+  id                   String        @id @default(uuid())
+  fullName             String
+  email                String?
+  partnerId            String
+  status               StudentStatus @default(PENDING)
+  cohort               String?
+  earlyReleaseEligible Boolean       @default(false)
+  addedById            String
+  addedDate            DateTime      @default(now())
+  notes                String?
+  addedByUser          User          @relation("AddedBy", fields: [addedById], references: [id])
+  partner              Partner       @relation(fields: [partnerId], references: [id])
+  interactions         Interaction[] @relation("InteractionStudents")
 }
 
 model Partner {
-  id                        String        @id @default(uuid())
-  organizationName          String
-  websiteUrl                String?
-  schoolType                String?
-  officialStatusDate        DateTime?
-  courseNumber              Int?
-  makeVirtualHours          Int?
-  totalPaidContentSees      Int?
-  partnerType               String?
-  partnerStatus             String?
-  currentStatusNotes        String?
-  earlyReleaseForSeniors    Boolean       @default(false)
-  pastCohortMembers         Json?
-  originalJobNoticeDetails  String?
-  tags                      String[]
-  createdBy                 User          @relation("CreatedBy", fields: [createdById], references: [id])
-  createdById               String
-  createdAt                 DateTime      @default(now())
-  updatedAt                 DateTime      @updatedAt
-  contacts                  Contact[]
-  interactions              Interaction[]
-  students                  Student[]
-  emailDrafts               EmailDraft[]
+  id                       String        @id @default(uuid())
+  organizationName         String
+  logoUrl                  String?
+  industry                 String?
+  description              String?
+  websiteUrl               String?
+  schoolType               String?
+  officialStatusDate       DateTime?
+  courseNumber             Int?
+  makeVirtualHours         Int?
+  totalPaidContentSees     Int?
+  partnerType              String?
+  partnerStatus            String?
+  currentStatusNotes       String?
+  earlyReleaseForSeniors   Boolean       @default(false)
+  pastCohortMembers        Json?
+  originalJobNoticeDetails String?
+  tags                     String[]
+  createdById              String
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+  contacts                 Contact[]
+  emailDrafts              EmailDraft[]
+  interactions             Interaction[]
+  createdBy                User          @relation("CreatedBy", fields: [createdById], references: [id])
+  students                 Student[]
+
   @@index([createdById])
+}
+
+model Contact {
+  id          String      @id @default(uuid())
+  partnerId   String
+  contactType ContactType
+  name        String
+  email       String
+  title       String?
+  partner     Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId])
+}
+
+model Interaction {
+  id              String          @id @default(uuid())
+  partnerId       String
+  interactionType InteractionType
+  staffId         String
+  date            DateTime
+  studentCount    Int             @default(0)
+  sharedNotes     String?
+  needsFollowup   Boolean         @default(false)
+  followupDueDate DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  partner         Partner         @relation(fields: [partnerId], references: [id])
+  staff           User            @relation(fields: [staffId], references: [id])
+  students        Student[]       @relation("InteractionStudents")
+
+  @@index([partnerId])
+  @@index([staffId])
+}
+
+model ActivityLog {
+  id             String   @id @default(uuid())
+  userId         String
+  action         String
+  targetType     String
+  targetId       String?
+  targetName     String?
+  additionalInfo String?
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model EmailDraft {
+  id           String    @id @default(uuid())
+  staffId      String
+  partnerId    String
+  contactEmail String
+  subject      String
+  body         String
+  aiPromptUsed String?
+  isSent       Boolean   @default(false)
+  sentAt       DateTime?
+  createdAt    DateTime  @default(now())
+  partner      Partner   @relation(fields: [partnerId], references: [id])
+  staff        User      @relation(fields: [staffId], references: [id])
+
+  @@index([staffId])
+  @@index([partnerId])
+}
+
+model SavedSearch {
+  id         String   @id @default(uuid())
+  userId     String
+  name       String
+  searchType String
+  filters    Json
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model StaffNote {
+  id        String   @id @default(uuid())
+  content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+}
+
+enum Role {
+  ADMINISTRATOR
+  PROGRAM_COORDINATOR
+  PARTNERSHIP_MANAGER
+  STAFF_USER
 }
 
 enum ContactType {
   LEADERSHIP
   PRIMARY
   SECONDARY
-}
-
-model Contact {
-  id          String      @id @default(uuid())
-  partner     Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  partnerId   String
-  contactType ContactType
-  name        String
-  email       String
-  title       String?
-  @@index([partnerId])
 }
 
 enum InteractionType {
@@ -125,70 +209,9 @@ enum InteractionType {
   STUDENT_APPLICATION
 }
 
-model Interaction {
-  id               String            @id @default(uuid())
-  partner          Partner           @relation(fields: [partnerId], references: [id])
-  partnerId        String
-  interactionType  InteractionType
-  staff            User              @relation(fields: [staffId], references: [id])
-  staffId          String
-  date             DateTime
-  studentCount     Int               @default(0)
-  sharedNotes      String?
-  needsFollowup    Boolean           @default(false)
-  followupDueDate  DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  students         Student[]         @relation("InteractionStudents")
-  @@index([partnerId])
-  @@index([staffId])
-}
-
 enum StudentStatus {
   ACTIVE_MEMBER
   APPLICANT
   ALUMNI
   PENDING
-}
-
-model ActivityLog {
-  id              String   @id @default(uuid())
-  user            User     @relation(fields: [userId], references: [id])
-  userId          String
-  action          String
-  targetType      String
-  targetId        String?
-  targetName      String?
-  additionalInfo  String?
-  createdAt       DateTime @default(now())
-  @@index([userId])
-}
-
-model EmailDraft {
-  id             String   @id @default(uuid())
-  staff          User     @relation(fields: [staffId], references: [id])
-  staffId        String
-  partner        Partner  @relation(fields: [partnerId], references: [id])
-  partnerId      String
-  contactEmail   String
-  subject        String
-  body           String
-  aiPromptUsed   String?
-  isSent         Boolean  @default(false)
-  sentAt         DateTime?
-  createdAt      DateTime @default(now())
-  @@index([staffId])
-  @@index([partnerId])
-}
-
-model SavedSearch {
-  id          String   @id @default(uuid())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  name        String
-  searchType  String
-  filters     Json
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  @@index([userId])
 }

@@ -78,22 +78,20 @@ export default function AddPartnerForm() {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       if (!token) {
         setError('Not authenticated');
         return;
       }
 
-      // USE the formData variable in API call
       const response = await fetch(
-        'http://localhost:5000/api/partners',
+        '/api/partners',
         {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          // USE formData and contacts here
           body: JSON.stringify({
             organizationName: formData.organizationName,
             websiteUrl: formData.websiteUrl,
@@ -140,7 +138,7 @@ export default function AddPartnerForm() {
             <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Organization Name *
                 </label>
                 <input
@@ -155,7 +153,7 @@ export default function AddPartnerForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Website URL
                 </label>
                 <input
@@ -170,9 +168,9 @@ export default function AddPartnerForm() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    School Type
-                  </label>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  School Type
+                </label>
                   <select
                     name="schoolType"
                     value={formData.schoolType}
@@ -187,9 +185,9 @@ export default function AddPartnerForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Partner Type
-                  </label>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Partner Type
+                </label>
                   <select
                     name="partnerType"
                     value={formData.partnerType}
@@ -295,27 +293,28 @@ export default function AddPartnerForm() {
             <h2 className="text-xl font-semibold mb-4">Partnership Status</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Status
                 </label>
                 <div className="flex gap-4">
                   {['Active', 'Pending', 'Inactive'].map((status) => (
-                    <label key={status} className="flex items-center gap-2">
+                    <label key={status} className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
                         name="partnerStatus"
                         value={status}
                         checked={formData.partnerStatus === status}
                         onChange={handleInputChange}
+                        className="w-4 h-4 text-primary border-border bg-card focus:ring-primary/20"
                       />
-                      <span className="text-sm">{status}</span>
+                      <span className="text-sm text-foreground">{status}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Tags (comma-separated)
                 </label>
                 <input

@@ -1,154 +1,224 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
-import AIEmailSection from '../components/AIEmailSection';
 import { clsx } from 'clsx';
-import { sendEmailAction, generateAIEmailAction } from './actions';
-import { Mail, Send, Save, Eye, AlertCircle, CheckCircle, RotateCcw } from 'lucide-react';
+import { Mail, AlertCircle, CheckCircle } from 'lucide-react';
+import { api, type ActiveOrganization } from '@/app/lib/api';
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api';
-
-interface Organization {
-  id: string;
-  name: string;
-  organizationName?: string;
-  contacts: Array<{
-    id: string;
-    name: string;
-    email: string;
-    contactType: string;
-  }>;
-}
+type Organization = ActiveOrganization;
 
 const EmailComposerPage = () => {
   const router = useRouter();
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isLoading, user } = useAuth();
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
-  const [emailBody, setEmailBody] = useState('');
+  const [generatedEmail, setGeneratedEmail] = useState('');
+  const [customInstructions, setCustomInstructions] = useState('');
+  const [emailPurpose, setEmailPurpose] = useState('Check-in');
   const [tone, setTone] = useState('professional');
   const [showPreview, setShowPreview] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [primaryContacts, setPrimaryContacts] = useState<{ email: string; name: string; org: string }[]>([]);
   const [selectedRecipient, setSelectedRecipient] = useState('');
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [partners, setPartners] = useState<Organization[]>([]);
-  const [selectedPartnerId, setSelectedPartnerId] = useState('');
-  // Auth Guard
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState('');
+
+  const activeOrg = organizations.find((org) => org.id === selectedOrgId);
+  const availableContacts = activeOrg?.contacts || [];
+  const quickEmailData = useRef<{ partnerId: string; contactEmail: string; subject?: string } | null>(null);
+  const generateRef = useRef<() => Promise<void>>();
+
+  // Data loading and error state
+  const [isDatabaseLoading, setIsDatabaseLoading] = useState(true);
+  const [dbError, setDbError] = useState<string | null>(null);
+
   useEffect(() => {
-    const checkAuth = async () => {
-      // This is a client component, so we can't use server-side cookies()
-      // We rely on the AuthContext, which should be initialized by now.
-      if (!isLoading && !isAuthenticated) {
-        router.replace('/login');
-      }
-    };
-    checkAuth();
-  }, [isAuthenticated, isLoading, router]);
-
-
-  const insertableVariables = [
-    'PartnerName',
-    'Primary Contact',
-    'Staff Name',
-    'Interaction Date',
-    'Student Count',
-  ];
-
-  const fetchPrimaryContacts = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/partners`);
-      if (res.ok) {
-        const data = await res.json();
-        // Flatten all primary contacts from all organizations
-        const contacts = [];
-        for (const partner of data) {
-          if (partner.contacts && Array.isArray(partner.contacts)) {
-            for (const c of partner.contacts) {
-              if (c.contactType === 'PRIMARY' || c.contactType === 'primary') {
-                contacts.push({
-                  email: c.email,
-                  name: c.name,
-                  org: partner.organizationName || partner.name || '',
-                });
-              }
-            }
-          }
-        }
-        setPrimaryContacts(contacts);
-      }
-    } catch (error) {
-      console.error('Error fetching contacts:', error);
+    if (!isLoading && !user) {
+      router.push('/login');
     }
-  };
-
-  const fetchPartners = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/partners`);
-      if (res.ok) {
-        const data = await res.json();
-        setPartners(data);
-      }
-    } catch (error) {
-      console.error('Error fetching partners:', error);
-    }
-  };
+  }, [isLoading, user, router]);
 
   useEffect(() => {
     const loadData = async () => {
-      await fetchPrimaryContacts();
-      await fetchPartners();
-      // Load from localStorage
-      const savedDraft = localStorage.getItem('email_draft');
-      if (savedDraft) {
-        const { to, subject, body, selectedRecipient, tone, aiPrompt, selectedPartnerId } = JSON.parse(savedDraft);
-        if (to) setTo(to);
-        if (subject) setSubject(subject);
-        if (body) setEmailBody(body);
-        if (selectedRecipient) setSelectedRecipient(selectedRecipient);
-        if (tone) setTone(tone);
-        if (aiPrompt) setAiPrompt(aiPrompt);
-        if (selectedPartnerId) setSelectedPartnerId(selectedPartnerId);
+      setIsDatabaseLoading(true);
+      setDbError(null);
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/partners', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const partners = res.ok ? await res.json() : [];
+        const mappedOrganizations: Organization[] = (Array.isArray(partners) ? partners : []).map((p: any) => ({
+          id: p.id,
+          partnerId: p.id,
+          orgId: null,
+          name: p.organizationName,
+          tier: p.partnerType ?? null,
+          status: p.partnerStatus || 'Unknown',
+          statusNormalized: 'UNKNOWN',
+          primaryContactName: (p.contacts || []).find((c: any) => c.contactType === 'PRIMARY')?.name || 'N/A',
+          primaryContactEmail: (p.contacts || []).find((c: any) => c.contactType === 'PRIMARY')?.email || '',
+          contacts: (p.contacts || []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            email: c.email,
+            contactType: c.contactType,
+            title: c.title,
+          })),
+        }));
+        setOrganizations(mappedOrganizations);
+
+        const savedDraft = localStorage.getItem('email_draft');
+        if (savedDraft) {
+          let parsed: Record<string, unknown>;
+          try {
+            parsed = JSON.parse(savedDraft);
+          } catch {
+            localStorage.removeItem('email_draft');
+            return;
+          }
+
+          const {
+            to: savedTo,
+            subject: savedSubject,
+            generatedEmail: savedGeneratedEmail,
+            selectedRecipient: savedSelectedRecipient,
+            tone: savedTone,
+            customInstructions: savedCustomInstructions,
+            selectedOrgId: savedOrgId,
+            emailPurpose: savedPurpose,
+          } = parsed as {
+            to?: string;
+            subject?: string;
+            generatedEmail?: string;
+            selectedRecipient?: string;
+            tone?: string;
+            customInstructions?: string;
+            selectedOrgId?: string;
+            emailPurpose?: string;
+          };
+
+          if (savedTo) setTo(savedTo);
+          if (savedSubject) setSubject(savedSubject);
+          if (savedGeneratedEmail) setGeneratedEmail(savedGeneratedEmail);
+          if (savedSelectedRecipient) setSelectedRecipient(savedSelectedRecipient);
+          if (savedTone) setTone(savedTone);
+          if (savedCustomInstructions) setCustomInstructions(savedCustomInstructions);
+          if (savedPurpose) setEmailPurpose(savedPurpose);
+
+          if (savedOrgId) {
+            setSelectedOrgId(savedOrgId);
+          }
+        }
+      } catch {
+        setOrganizations([]);
+        setDbError('Failed to load organizations.');
+      } finally {
+        setIsDatabaseLoading(false);
       }
     };
-    loadData();
-  }, []);
+
+    if (user) {
+      loadData();
+    }
+    if (!user) {
+      setIsDatabaseLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
-    // Save to localStorage
-    const draft = { to, subject, body: emailBody, selectedRecipient, tone, aiPrompt, selectedPartnerId };
-    localStorage.setItem('email_draft', JSON.stringify(draft));
-  }, [to, subject, emailBody, selectedRecipient, tone, aiPrompt, selectedPartnerId]);
+    try {
+      localStorage.setItem('email_draft', JSON.stringify({
+        to, subject, generatedEmail, selectedRecipient, tone,
+        customInstructions, selectedOrgId, emailPurpose,
+      }));
+    } catch {
+      // Storage full or unavailable — silently ignore
+    }
+  }, [to, subject, generatedEmail, selectedRecipient, tone, customInstructions, selectedOrgId, emailPurpose]);
 
+  useEffect(() => {
+    if (!user || organizations.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const partnerId = params.get('partnerId');
+    const contactEmail = params.get('contactEmail');
+    const subjectParam = params.get('subject');
+    if (!partnerId || !contactEmail) return;
 
+    quickEmailData.current = { partnerId, contactEmail, subject: subjectParam || undefined };
 
-  const handleGenerateAI = async () => {
-    if (!selectedPartnerId || !aiPrompt) {
-      setMessage({ type: 'error', text: 'Select a partner and provide a prompt for AI' });
+    const org = organizations.find((o) => o.partnerId === partnerId);
+    if (org) {
+      setSelectedOrgId(org.id);
+      setSelectedRecipient(contactEmail);
+      setTo(contactEmail);
+      if (subjectParam) setSubject(subjectParam);
+    }
+  }, [user, organizations]);
+
+  useEffect(() => {
+    if (!quickEmailData.current || !activeOrg || !selectedRecipient) return;
+    if (selectedRecipient !== quickEmailData.current.contactEmail) return;
+
+    quickEmailData.current = null;
+    const timer = setTimeout(() => generateRef.current?.(), 300);
+    return () => clearTimeout(timer);
+  }, [activeOrg, selectedRecipient]);
+
+  const handleGenerateAIEmail = async () => {
+    if (!activeOrg) {
+      setMessage({ type: 'error', text: 'Select an organization first.' });
       return;
     }
-    setAiLoading(true);
-    setMessage(null);
-    try {
-      const { email } = await generateAIEmailAction({ userPrompt: aiPrompt, partnerId: selectedPartnerId, tone });
-      const subjectMatch = email.match(/Subject: (.*)/i);
-      const bodyMatch = email.replace(/Subject: .*/i, '').trim();
-      if (subjectMatch) setSubject(subjectMatch[1]);
-      setEmailBody(bodyMatch);
-      setMessage({ type: 'success', text: 'AI Draft generated' });
-    } catch (error) {
-      setMessage({ type: 'error', text: 'AI Generation failed. Check API key.' });
+    if (!selectedRecipient) {
+      setMessage({ type: 'error', text: 'Select a recipient.' });
+      return;
     }
-    setAiLoading(false);
+
+    setIsGenerating(true);
+    setMessage(null);
+    setGeneratedEmail('');
+
+    const selectedContact = availableContacts.find(c => c.email === selectedRecipient);
+
+    try {
+      const promptContext = {
+        organizationName: activeOrg.name,
+        tier: activeOrg.tier || 'Tier Not Set',
+        primaryContact: selectedContact?.name || activeOrg.primaryContactName || 'N/A',
+        purpose: emailPurpose,
+      };
+
+      const data = await api.generateEmail({
+        partnerId: activeOrg.partnerId,
+        customInstructions,
+        tone,
+        subject,
+        recipientName: selectedContact?.name || '',
+        recipientEmail: selectedRecipient,
+        promptContext,
+      });
+
+      setGeneratedEmail(data.emailBody || data.text || '');
+      if (data.subject) {
+        setSubject(data.subject);
+      }
+      setMessage({ type: 'success', text: 'AI Draft generated' });
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : 'AI Generation failed. Check API key.';
+      setMessage({ type: 'error', text: messageText });
+    } finally {
+      setIsGenerating(false);
+    }
   };
+  generateRef.current = handleGenerateAIEmail;
 
   const [isPending, startTransition] = useTransition();
   const handleSendEmail = () => {
-    if (!to || !subject || !emailBody) {
+    if (!to || !subject || !generatedEmail) {
       setMessage({ type: 'error', text: 'Please fill in all fields' });
       return;
     }
@@ -156,11 +226,20 @@ const EmailComposerPage = () => {
     setMessage(null);
     startTransition(async () => {
       try {
-        await sendEmailAction({ to, subject, text: emailBody });
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ to, subject, text: generatedEmail, partnerId: activeOrg?.partnerId }),
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Failed to send email');
+        }
         setMessage({ type: 'success', text: 'Email sent successfully!' });
         setTo('');
         setSubject('');
-        setEmailBody('');
+        setGeneratedEmail('');
         localStorage.removeItem('email_draft');
       } catch (error) {
         setMessage({ type: 'error', text: 'Failed to send email.' });
@@ -168,13 +247,32 @@ const EmailComposerPage = () => {
       setLoading(false);
     });
   };
-  // Copy to clipboard
   const handleCopy = () => {
-    if (emailBody) {
-      navigator.clipboard.writeText(emailBody);
-      setMessage({ type: 'success', text: 'Copied to clipboard!' });
+    if (!generatedEmail) return;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(generatedEmail).then(() => {
+        setMessage({ type: 'success', text: 'Copied to clipboard!' });
+      }).catch(() => fallbackCopy(generatedEmail));
+    } else {
+      fallbackCopy(generatedEmail);
     }
   };
+
+  function fallbackCopy(text: string) {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setMessage({ type: 'success', text: 'Copied to clipboard!' });
+    } catch {
+      setMessage({ type: 'error', text: 'Failed to copy. Select text manually.' });
+    }
+  }
 
   const handleRecipientSelect = (email: string) => {
     setSelectedRecipient(email);
@@ -184,126 +282,193 @@ const EmailComposerPage = () => {
   const handleClear = () => {
     setTo('');
     setSubject('');
-    setEmailBody('');
+    setGeneratedEmail('');
     setMessage(null);
-    setSelectedPartnerId('');
-    setAiPrompt('');
+    setSelectedOrgId('');
+    setEmailPurpose('Check-in');
+    setCustomInstructions('');
+    setSelectedRecipient('');
     localStorage.removeItem('email_draft');
   };
 
+  function MissingBadge({ label }: { label: string }) {
+    return <span className="missing-badge">{label}</span>;
+  }
+
+  // Safe Return Guard: Isolate auth/session from data loading
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="spinner-ring-lg" />
+      </div>
+    );
+  }
+  if (!user) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-background font-sans p-8" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <div className="page-wrapper" style={{ maxWidth: 1100, margin: '0 auto', gap: 24 }}>
-        <h1 className="text-4xl font-extrabold text-foreground mb-2 tracking-tight">Email Terminal</h1>
-        <p className="text-muted-foreground font-semibold flex items-center gap-2 uppercase tracking-widest text-sm mb-6">
-          <Mail size={18} className="text-primary" /> Strategic Communication Interface
-        </p>
+    <div className="lmc-page">
+      <div className="lmc-page-accent" />
+      <div className="lmc-page-inner max-w-5xl">
+        {dbError && (
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-500 font-semibold">
+            {dbError} <button className="ml-2 underline" onClick={() => window.location.reload()}>Retry</button>
+          </div>
+        )}
+        <div className="lmc-page-header">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="lmc-page-title">Email Terminal</h1>
+              <p className="lmc-page-subtitle inline-flex items-center gap-2">
+                <Mail size={16} className="text-primary shrink-0" />
+                <span>Strategic Communication Interface</span>
+              </p>
+            </div>
+            <button
+              onClick={handleClear}
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-colors"
+            >
+              Clear Draft
+            </button>
+          </div>
+        </div>
         {message && (
           <div className={clsx(
-            'flex items-center gap-4 px-8 py-4 rounded-xl border text-base font-bold tracking-wide shadow-sm',
+            'flex items-center gap-4 px-6 py-3.5 rounded-xl border text-sm font-bold tracking-wide shadow-sm',
             message.type === 'success'
-              ? 'bg-success/5 border-success/20 text-success'
-              : 'bg-destructive/5 border-destructive/20 text-destructive',
-            'transition-all duration-200'
+              ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+              : 'bg-red-500/5 border-red-500/20 text-red-500',
           )}>
-            {message.type === 'success' ? <CheckCircle size={22} strokeWidth={3} /> : <AlertCircle size={22} strokeWidth={3} />}
+            {message.type === 'success' ? <CheckCircle size={20} strokeWidth={3} /> : <AlertCircle size={20} strokeWidth={3} />}
             {message.text}
           </div>
         )}
-        <div className="flex flex-col gap-6 w-full">
-          {/* Partner Dropdown */}
-          <div className="flex flex-col gap-2 w-full">
-            <label className="text-sm font-semibold text-muted-foreground uppercase tracking-widest" htmlFor="partner-select">TARGET PARTNER</label>
-            <select
-              id="partner-select"
-              value={selectedPartnerId}
-              onChange={(e) => {
-                setSelectedPartnerId(e.target.value);
-                setSelectedRecipient(''); // Reset recipient when partner changes
-              }}
-              className="w-full px-4 py-2 bg-white border border-[#e2e8f0] rounded-lg text-base text-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 appearance-none cursor-pointer shadow-sm"
-            >
-              <option value="">CHOOSE PARTNER...</option>
-              {partners.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.organizationName || p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          {/* Recipient Dropdown */}
-          <div className="flex flex-col gap-2 w-full">
-            <label className="text-sm font-semibold text-muted-foreground uppercase tracking-widest" htmlFor="recipient-select">RECIPIENT</label>
-            <select
-              id="recipient-select"
-              value={selectedRecipient}
-              onChange={(e) => handleRecipientSelect(e.target.value)}
-              className="w-full px-4 py-2 bg-white border border-[#e2e8f0] rounded-lg text-base text-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 appearance-none cursor-pointer shadow-sm"
-            >
-              <option value="">CHOOSE RECIPIENT...</option>
-              {(() => {
-                const partner = partners.find(p => p.id === selectedPartnerId);
-                if (!partner || !partner.contacts) return null;
-                return partner.contacts
-                  .filter(c => (c.contactType || c.contactType) === 'PRIMARY' || (c.contactType || c.contactType) === 'primary')
-                  .map((c, idx) => (
-                    <option key={c.email + idx} value={c.email}>
-                      {c.name} ({c.email})
-                    </option>
-                  ));
-              })()}
-            </select>
-          </div>
-          {/* Subject */}
-          <div className="flex flex-col gap-2 w-full">
-            <label className="text-sm font-semibold text-muted-foreground uppercase tracking-widest" htmlFor="subject-input">MISSION SUBJECT</label>
-            <input
-              id="subject-input"
-              type="text"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="STRATEGIC FOLLOW-UP..."
-              className="w-full px-4 py-2 bg-white border border-[#e2e8f0] rounded-lg text-base text-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 shadow-sm"
-            />
-          </div>
-          {/* AI Prompt + Generate */}
-          <div className="flex flex-col gap-2 w-full">
-            <label className="text-sm font-semibold text-muted-foreground uppercase tracking-widest" htmlFor="ai-prompt-input">AI MISSION OBJECTIVES</label>
-            <div className="flex flex-row gap-2 w-full">
-              <input
-                id="ai-prompt-input"
-                type="text"
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="E.G., FOLLOW UP ON INFOSESSION, PROPOSE NEXT MEETING..."
-                className="w-full px-4 py-2 bg-white border border-[#e2e8f0] rounded-lg text-base text-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 shadow-sm"
-              />
-              <button
-                onClick={handleGenerateAI}
-                disabled={aiLoading}
-                className="px-5 py-2 rounded-lg bg-primary text-white text-sm font-bold uppercase tracking-widest shadow-sm hover:bg-primary/90 transition-all duration-200 disabled:opacity-50 cursor-pointer"
-                style={{ minWidth: 120 }}
+
+        <div className="space-y-3">
+        {/* 1. Partner Select */}
+        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
+          <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="partner-select">Target Partner</label>
+          <select
+            id="partner-select"
+            name="organizationId"
+            value={selectedOrgId}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedOrgId(value);
+              setSelectedRecipient('');
+              if (!value) setTo('');
+            }}
+            disabled={isDatabaseLoading || !!dbError || organizations.length === 0}
+            className="w-full min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          >
+            {isDatabaseLoading ? (
+              <option value="">Loading database records...</option>
+            ) : dbError ? (
+              <option value="">Error loading data</option>
+            ) : organizations.length === 0 ? (
+              <option value="">No organization records found</option>
+            ) : (
+              <>
+                <option value="">CHOOSE ORGANIZATION...</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name} {org.tier ? `(${org.tier})` : ''}
+                  </option>
+                ))}
+              </>
+            )}
+          </select>
+          {activeOrg && (
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Primary Contact: {activeOrg.primaryContactName || 'N/A'}
+            </p>
+          )}
+        </div>
+
+        {/* 2. Contact Select */}
+        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
+          <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="recipient-select">Recipient</label>
+          <select
+            id="recipient-select"
+            name="recipientEmail"
+            value={selectedRecipient}
+            onChange={(e) => handleRecipientSelect(e.target.value)}
+            disabled={isDatabaseLoading || !!dbError || !selectedOrgId}
+            className="w-full min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          >
+            {isDatabaseLoading ? (
+              <option value="">Loading database records...</option>
+            ) : dbError ? (
+              <option value="">Error loading data</option>
+            ) : !selectedOrgId ? (
+              <option value="">Please choose an organization first...</option>
+            ) : availableContacts.length === 0 ? (
+              <option value="">No contacts available for this organization</option>
+            ) : (
+              <>
+                <option value="">CHOOSE RECIPIENT...</option>
+                {availableContacts.map((contact) => (
+                  <option key={contact.id} value={contact.email || ''}>
+                    {(contact.name || 'Unnamed Contact')} ({(contact.email) || 'No Email'})
+                  </option>
+                ))}
+              </>
+            )}
+          </select>
+        </div>
+
+        {/* 3. Subject Line + Purpose */}
+        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="email-purpose-select">Email Purpose</label>
+              <select
+                id="email-purpose-select"
+                name="emailPurpose"
+                value={emailPurpose}
+                onChange={(e) => setEmailPurpose(e.target.value)}
+                className="w-full min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
-                {aiLoading ? 'Generating...' : 'Generate AI Email'}
-              </button>
+                <option value="Check-in">Check-in</option>
+                <option value="Quarterly Planning">Quarterly Planning</option>
+                <option value="Follow-up">Follow-up</option>
+                <option value="Re-engagement">Re-engagement</option>
+              </select>
+            </div>
+            <div>
+              <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="subject-input">Subject</label>
+              <input
+                id="subject-input"
+                name="subject"
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="STRATEGIC FOLLOW-UP..."
+                className="w-full min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
+              />
             </div>
           </div>
-          {/* Tone Selector */}
-          <div className="flex flex-row flex-wrap gap-3 items-center justify-start w-full">
+        </div>
+
+        {/* 4. Tone Selector */}
+        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
+          <label className="block pb-2 tracking-wide font-bold text-xs text-muted-foreground uppercase">Tone</label>
+          <div className="flex flex-row flex-wrap gap-2">
             {['professional', 'formal', 'casual', 'enthusiastic'].map((t) => (
               <button
                 key={t}
                 type="button"
                 className={clsx(
-                  'px-5 py-2 rounded-full font-bold text-xs uppercase tracking-widest border transition-all duration-200 cursor-pointer',
+                  'px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest border transition-all duration-200 cursor-pointer',
                   tone === t
-                    ? 'bg-primary text-white border-primary shadow'
-                    : 'bg-white text-foreground border-[#e2e8f0] hover:bg-primary/10 hover:text-primary',
+                    ? 'bg-primary/20 text-primary border-primary/40 shadow-[0_0_12px_rgba(16,185,129,0.3)] dark:shadow-[0_0_12px_rgba(52,211,153,0.25)]'
+                    : 'bg-card text-foreground border-border hover:bg-muted',
                   'focus:outline-none focus:ring-2 focus:ring-primary/20'
                 )}
                 onClick={() => setTone(t)}
-                disabled={aiLoading}
-                style={{ minWidth: 160 }}
+                disabled={isGenerating}
+                style={{ minWidth: 140 }}
               >
                 {t === 'professional' && 'WARM & PROFESSIONAL'}
                 {t === 'formal' && 'STRICT & FORMAL'}
@@ -312,55 +477,108 @@ const EmailComposerPage = () => {
               </button>
             ))}
           </div>
-          {/* Editable Email Body */}
-          <div className="flex flex-col gap-3 w-full" style={{ flexGrow: 1 }}>
-            <label className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Editable Email Body</label>
-            <textarea
-              value={emailBody}
-              onChange={e => setEmailBody(e.target.value)}
-              placeholder="AI-generated email will appear here. You can edit before sending."
-              className="w-full rounded-xl border border-[#e2e8f0] p-4 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-vertical shadow-sm"
-              style={{ flexGrow: 1, minHeight: 180, maxHeight: 400, background: '#fff' }}
-              disabled={aiLoading}
+        </div>
+
+        {/* 5. AI Prompt & Generate */}
+        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
+          <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="ai-prompt-input">AI Mission Objectives</label>
+          <div className="flex flex-row gap-2">
+            <input
+              id="ai-prompt-input"
+              name="customInstructions"
+              type="text"
+              value={customInstructions}
+              onChange={(e) => setCustomInstructions(e.target.value)}
+              placeholder="E.G., FOLLOW UP ON INFOSESSION, PROPOSE NEXT MEETING..."
+              className="flex-1 min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
             />
-            <div className="flex flex-row gap-4 w-full mt-2">
-              <button
-                className="flex-1 py-3 rounded-lg bg-primary text-white font-bold text-base uppercase tracking-widest shadow-sm hover:bg-primary/90 transition-all duration-200 disabled:opacity-50 cursor-pointer"
-                onClick={handleSendEmail}
-                disabled={loading || isPending}
-              >
-                {loading || isPending ? 'Sending...' : 'Send Email'}
-              </button>
-              <button
-                className="py-3 px-5 rounded-lg border border-[#e2e8f0] text-foreground font-bold text-base uppercase tracking-widest shadow-sm hover:bg-muted transition-all duration-200 cursor-pointer"
-                onClick={handleCopy}
-                disabled={!emailBody}
-              >
-                Copy
-              </button>
-              <button
-                className="py-3 px-5 rounded-lg border border-accent text-accent font-bold text-base uppercase tracking-widest shadow-sm hover:bg-accent/10 hover:text-accent transition-all duration-200 cursor-pointer"
-                onClick={() => setShowPreview((p) => !p)}
-              >
-                {showPreview ? 'Hide Preview' : 'Preview'}
-              </button>
-            </div>
+            <button
+              onClick={handleGenerateAIEmail}
+              disabled={isGenerating || !activeOrg}
+              className="px-6 min-h-[52px] rounded-xl bg-primary text-primary-foreground text-sm font-bold uppercase tracking-widest shadow-sm hover:bg-primary/90 transition-all duration-200 disabled:opacity-50 cursor-pointer shrink-0"
+            >
+              {isGenerating ? (
+                <span className="flex items-center gap-2"><div className="spinner-ring-sm" /> Generating</span>
+              ) : (
+                'Generate'
+              )}
+            </button>
           </div>
-          {/* Preview Overlay */}
-          {showPreview && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" style={{ backdropFilter: 'blur(4px)' }}>
-              <div className="bg-white border border-[#e2e8f0] rounded-2xl p-12 shadow-xl max-w-lg w-full mx-auto flex flex-col gap-6 relative items-center" style={{ boxShadow: '0 4px 16px 0 rgb(0 0 0 / 0.10)' }}>
-                <button className="absolute top-4 right-4 text-destructive font-bold text-2xl" onClick={() => setShowPreview(false)} style={{ lineHeight: 1 }}>&times;</button>
-                <h3 className="text-2xl font-extrabold text-foreground mb-2 tracking-tight">Email Preview</h3>
-                <div className="text-sm text-muted-foreground mb-2">To: <span className="text-foreground font-semibold">{to || 'NO TARGET SPECIFIED'}</span></div>
-                <div className="text-sm text-muted-foreground mb-2">Subject: <span className="text-primary italic uppercase font-semibold">{subject || 'UNSPECIFIED MISSION'}</span></div>
-                <div className="whitespace-pre-wrap text-foreground leading-relaxed italic border border-[#e2e8f0] rounded-xl p-6 bg-muted/30 min-h-[120px] w-full" style={{ fontSize: 16 }}>{emailBody || 'AWAITING MISSION INTEL...'}</div>
-              </div>
-            </div>
+          {isGenerating && (
+            <p className="mt-1.5 text-xs text-muted-foreground font-semibold">
+              AI is crafting your communication node...
+            </p>
           )}
         </div>
+
+        {/* 6. Editable Email Body */}
+        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
+          <label htmlFor="email-body-textarea" className="block pb-2 tracking-wide font-bold text-xs text-muted-foreground uppercase">Editable Email Body</label>
+          <div className="relative">
+            <textarea
+              id="email-body-textarea"
+              name="emailBody"
+              value={generatedEmail}
+              onChange={e => setGeneratedEmail(e.target.value)}
+              aria-label="Editable Email Body"
+              placeholder="AI-generated email will appear here. You can edit before sending."
+              className="w-full min-h-[220px] rounded-xl border border-border bg-card text-foreground p-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-vertical shadow-sm placeholder:text-muted-foreground"
+              disabled={isGenerating}
+            />
+            {isGenerating && (
+              <div className="absolute inset-0 rounded-xl border border-border bg-card/90 p-4">
+                <div className="animate-pulse space-y-3">
+                  <div className="h-4 w-3/4 rounded bg-muted" />
+                  <div className="h-4 w-11/12 rounded bg-muted" />
+                  <div className="h-4 w-2/3 rounded bg-muted" />
+                  <div className="h-4 w-4/5 rounded bg-muted" />
+                </div>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Generating draft...</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      <div className="flex flex-row gap-3 pt-2">
+        <button
+          className="flex-[2] min-h-[52px] rounded-xl bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-primary/90 transition-all duration-200 disabled:opacity-50 cursor-pointer"
+          onClick={handleSendEmail}
+          disabled={loading || isPending}
+        >
+          {loading || isPending ? 'Sending...' : 'Send Email'}
+        </button>
+        <button
+          className="flex-1 min-h-[52px] rounded-xl border border-border text-foreground font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-muted transition-all duration-200 cursor-pointer"
+          onClick={handleCopy}
+          disabled={!generatedEmail}
+        >
+          Copy
+        </button>
+        <button
+          className="flex-1 min-h-[52px] rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-amber-500/10 transition-all duration-200 cursor-pointer"
+          onClick={() => setShowPreview((p) => !p)}
+        >
+          {showPreview ? 'Hide Preview' : 'Preview'}
+        </button>
+      </div>
+
+      {/* Preview Overlay */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded-2xl p-10 shadow-xl max-w-lg w-full mx-4 flex flex-col gap-5 relative items-center">
+            <button className="absolute top-4 right-4 text-red-500 font-bold text-2xl leading-none hover:text-red-400 transition-colors" onClick={() => setShowPreview(false)}>&times;</button>
+            <h3 className="text-xl font-extrabold text-foreground tracking-tight">Email Preview</h3>
+            <div className="text-sm text-muted-foreground">To: <span className="text-foreground font-semibold">{to || 'NO TARGET SPECIFIED'}</span></div>
+            <div className="text-sm text-muted-foreground">Subject: <span className="text-primary italic uppercase font-semibold">{subject || 'UNSPECIFIED MISSION'}</span></div>
+            <div className="whitespace-pre-wrap text-foreground leading-relaxed italic border border-border rounded-xl p-6 bg-muted min-h-[120px] w-full text-sm">
+              {generatedEmail || 'AWAITING MISSION INTEL...'}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  </div>
   );
 };
 

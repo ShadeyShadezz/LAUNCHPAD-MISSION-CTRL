@@ -67,6 +67,20 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // ============================================
+// ACTIVITY LOG HELPER
+// ============================================
+
+async function logActivity(userId: string, action: string, targetType: string, targetId?: string, targetName?: string, additionalInfo?: string) {
+  try {
+    await prisma.activityLog.create({
+      data: { userId, action, targetType, targetId, targetName, additionalInfo },
+    });
+  } catch (err) {
+    console.error('Failed to log activity:', err);
+  }
+}
+
+// ============================================
 // AUTH ROUTES
 // ============================================
 
@@ -92,9 +106,12 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error: 'JWT_SECRET not configured' });
+    }
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'secret',
+      process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRATION || '7d' } as jwt.SignOptions
     );
 
@@ -102,6 +119,8 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       where: { id: user.id },
       data: { lastLogin: new Date() },
     });
+
+    await logActivity(user.id, 'LOGGED_IN', 'User', user.id, user.email);
 
     res.json({
       token,
@@ -143,9 +162,12 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
       },
     });
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error: 'JWT_SECRET not configured' });
+    }
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'secret',
+      process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRATION || '7d' } as jwt.SignOptions
     );
 
@@ -208,7 +230,7 @@ app.get('/api/partners/:id', verifyToken, async (req: Request, res: Response) =>
 
 app.post('/api/partners', verifyToken, async (req: Request, res: Response) => {
   try {
-    const { organizationName, schoolType, websiteUrl, courseNumber, earlyReleaseForSeniors, tags, contacts } = req.body;
+    const { organizationName, schoolType, websiteUrl, partnerType, partnerStatus, courseNumber, earlyReleaseForSeniors, tags, contacts } = req.body;
 
     if (!req.user) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -219,6 +241,8 @@ app.post('/api/partners', verifyToken, async (req: Request, res: Response) => {
         organizationName,
         schoolType,
         websiteUrl,
+        partnerType,
+        partnerStatus,
         courseNumber: courseNumber ? parseInt(courseNumber) : null,
         earlyReleaseForSeniors: earlyReleaseForSeniors || false,
         tags: tags || [],
@@ -244,6 +268,8 @@ app.post('/api/partners', verifyToken, async (req: Request, res: Response) => {
       );
     }
 
+    await logActivity(req.user!.id, 'ADDED', 'Partner', partner.id, organizationName);
+
     res.status(201).json(partner);
   } catch (error: any) {
     console.error('Error creating partner:', error);
@@ -258,7 +284,7 @@ app.put('/api/partners/:id', verifyToken, async (req: Request, res: Response) =>
   try {
     let { id } = req.params;
     id = Array.isArray(id) ? id[0] : id;
-    const { organizationName, schoolType, websiteUrl, courseNumber, earlyReleaseForSeniors, tags } = req.body;
+    const { organizationName, schoolType, websiteUrl, partnerType, partnerStatus, courseNumber, earlyReleaseForSeniors, tags } = req.body;
 
     const partner = await prisma.partner.update({
       where: { id },
@@ -266,6 +292,8 @@ app.put('/api/partners/:id', verifyToken, async (req: Request, res: Response) =>
         organizationName,
         schoolType,
         websiteUrl,
+        partnerType,
+        partnerStatus,
         courseNumber: courseNumber ? parseInt(courseNumber) : null,
         earlyReleaseForSeniors,
         tags,
@@ -273,6 +301,8 @@ app.put('/api/partners/:id', verifyToken, async (req: Request, res: Response) =>
       },
       include: { contacts: true },
     });
+
+    await logActivity(req.user!.id, 'EDITED', 'Partner', id, organizationName);
 
     res.json(partner);
   } catch (error) {
@@ -285,7 +315,9 @@ app.delete('/api/partners/:id', verifyToken, async (req: Request, res: Response)
   try {
     let { id } = req.params;
     id = Array.isArray(id) ? id[0] : id;
+    const partner = await prisma.partner.findUnique({ where: { id }, select: { organizationName: true } });
     await prisma.partner.delete({ where: { id } });
+    await logActivity(req.user!.id, 'DELETED', 'Partner', id, partner?.organizationName || 'Unknown');
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting partner:', error);
@@ -329,6 +361,8 @@ app.post('/api/students', verifyToken, async (req: Request, res: Response) => {
         addedById: req.user.id,
       },
     });
+
+    await logActivity(req.user!.id, 'ADDED', 'Student', student.id, fullName);
 
     res.status(201).json(student);
   } catch (error: any) {
@@ -380,6 +414,9 @@ app.post('/api/interactions', verifyToken, async (req: Request, res: Response) =
         followupDueDate: followupDueDate ? new Date(followupDueDate) : null,
       },
     });
+
+    const partner = await prisma.partner.findUnique({ where: { id: partnerId }, select: { organizationName: true } });
+    await logActivity(req.user!.id, 'ADDED', 'Interaction', interaction.id, partner?.organizationName || 'Unknown', `${interactionType} with ${partner?.organizationName || partnerId}`);
 
     res.status(201).json(interaction);
   } catch (error) {
@@ -441,6 +478,7 @@ app.get('/api/activity-logs', verifyToken, async (req: Request, res: Response) =
     const logs = await prisma.activityLog.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,
+      include: { user: { select: { fullName: true } } },
     });
     res.json(logs);
   } catch (error) {

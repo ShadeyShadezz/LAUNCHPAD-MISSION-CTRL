@@ -2,11 +2,11 @@ import { Loader2 } from 'lucide-react';
 
 export default function Loading() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-      <Loader2 className="animate-spin text-primary mb-6" size={56} />
-      <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--primary)' }}>
-        Verifying Mission Credentials...
-      </span>
+    <div className="lmc-page flex items-center justify-center">
+      <div className="lmc-surface px-10 py-12 flex flex-col items-center gap-4 text-center">
+        <Loader2 className="animate-spin text-primary" size={44} />
+        <span className="text-lg font-semibold text-foreground">Verifying Mission Credentials...</span>
+      </div>
     </div>
   );
 }

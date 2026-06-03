@@ -1,16 +1,26 @@
-
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { prisma } from '@/app/lib/db';
+import { config } from '@/app/lib/config';
 
-const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecret-supersecret-supersecret';
+async function logActivity(userId: string, action: string, targetType: string, targetId?: string, targetName?: string) {
+  try {
+    await prisma.activityLog.create({
+      data: { userId, action, targetType, targetId, targetName },
+    });
+  } catch (err) {
+    console.error('Failed to log activity:', err);
+  }
+}
+
+const JWT_SECRET = config.JWT_SECRET;
 
 export async function POST(req: Request) {
-  console.log('--- DATABASE AUTH ATTEMPT ---');
   try {
-    const { email, password } = await req.json();
+    const body = await req.json().catch(() => null);
+    const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const password = typeof body?.password === 'string' ? body.password : '';
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
@@ -18,13 +28,22 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
+        role: true,
+        fullName: true,
+        title: true,
+        accessLevel: true,
+        createdAt: true,
+        lastLogin: true,
+      },
     });
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
-
-    if (!user.passwordHash) throw new Error('User has no passwordHash in database');
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
@@ -34,22 +53,30 @@ export async function POST(req: Request) {
 
     const { passwordHash, ...userWithoutPassword } = user;
 
-    const token = jwt.sign({
-      id: user.id,
-      email: user.email,
-      role: user.role
-    }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: config.JWT_MAX_AGE_SECONDS }
+    );
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { lastLogin: new Date() }
+      data: { lastLogin: new Date() },
     });
 
+    await logActivity(user.id, 'LOGGED_IN', 'User', user.id, user.email);
+
     const response = NextResponse.json({ success: true, user: userWithoutPassword, token });
-    response.cookies.set('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: config.JWT_MAX_AGE_SECONDS,
+    });
     return response;
   } catch (error) {
-    console.error('Database query failed:', error);
-    return NextResponse.json({ error: 'Database Connection Error' }, { status: 500 });
+    console.error('Authentication route failed:', error);
+    return NextResponse.json({ error: 'Authentication failed' }, { status: 500 });
   }
 }

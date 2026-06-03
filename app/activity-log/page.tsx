@@ -2,7 +2,7 @@
 
 import React from 'react';
 const { useState, useEffect } = React;
-import { Search, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { api } from '@/app/lib/api';
 
@@ -19,147 +19,207 @@ interface ActivityLog {
 const ActivityLogPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterAction, setFilterAction] = useState('all');
+  const [filterTargetType, setFilterTargetType] = useState('all');
+  const [filterStaffId, setFilterStaffId] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [staffList, setStaffList] = useState<{ id: string; fullName: string }[]>([]);
 
   useEffect(() => {
     fetchActivityLogs();
+    fetchStaff();
   }, []);
+
+  const fetchStaff = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch('/api/staff', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) setStaffList(await res.json());
+    } catch {
+      // Non-critical
+    }
+  };
 
   const fetchActivityLogs = async () => {
     setLoading(true);
+    setErrorMessage(null);
     try {
-      const data = await api.getActivityLogs();
+      const data = await api.getActivityLogs({
+        action: filterAction,
+        targetType: filterTargetType,
+        staffId: filterStaffId || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      });
       setActivityLogs(data);
     } catch (error) {
-      console.error('Error fetching activity logs:', error);
       setActivityLogs([]);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Activity tracking temporarily offline'
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const handleFilter = () => {
+    fetchActivityLogs();
+  };
+
   const filteredLogs = activityLogs.filter((log) => {
-    const matchesSearch = log.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = searchQuery === '' || (
+      log.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.targetName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.additionalInfo?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesAction = filterAction === 'all' || log.action === filterAction;
-    return matchesSearch && matchesAction;
+      log.additionalInfo?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    return matchesSearch;
   });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
 
-  const getActionColor = (action: string) => {
+  const getActionBadgeClass = (action: string) => {
     switch (action) {
-      case 'ADDED': return 'text-green-600 bg-green-50';
-      case 'EDITED': return 'text-blue-600 bg-blue-50';
-      case 'DELETED': return 'text-red-600 bg-red-50';
-      case 'LOGGED_IN': return 'text-gray-600 bg-gray-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'ADDED':
+      case 'CREATED': return 'lmc-badge lmc-badge--success';
+      case 'EDITED': return 'lmc-badge lmc-badge--primary';
+      case 'DELETED': return 'lmc-badge lmc-badge--destructive';
+      case 'LOGGED_IN': return 'lmc-badge lmc-badge--warning';
+      default: return 'lmc-badge lmc-badge--primary';
     }
   };
 
   return (
-    <div className="min-h-screen p-8" style={{ backgroundColor: "var(--background)" }}>
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
-            Activity Log
-          </h1>
-          <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-            Audit trail of all system activities
-          </p>
+    <div className="lmc-page">
+      <div className="lmc-page-accent" />
+      <div className="lmc-page-inner max-w-7xl">
+        <div className="lmc-page-header">
+          <div>
+            <h1 className="lmc-page-title">Activity Log</h1>
+            <p className="lmc-page-subtitle">Audit trail of all system activities</p>
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
             <input
               type="text"
               placeholder="Search logs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
+              className="lmc-input pl-10 pr-4 py-3"
             />
           </div>
-
-          {/* Action Filter */}
           <select
             value={filterAction}
             onChange={(e) => setFilterAction(e.target.value)}
-            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
+            className="lmc-input px-4 py-3 w-auto min-w-[140px]"
           >
             <option value="all">All Actions</option>
-            <option value="ADDED">Added</option>
+            <option value="CREATED">Created</option>
             <option value="EDITED">Edited</option>
             <option value="DELETED">Deleted</option>
             <option value="LOGGED_IN">Logged In</option>
           </select>
+          <select
+            value={filterTargetType}
+            onChange={(e) => setFilterTargetType(e.target.value)}
+            className="lmc-input px-4 py-3 w-auto min-w-[140px]"
+          >
+            <option value="all">All Targets</option>
+            <option value="Partner">Partner</option>
+            <option value="Interaction">Interaction</option>
+            <option value="Staff">Staff</option>
+            <option value="StaffNote">Staff Note</option>
+            <option value="Email">Email</option>
+          </select>
+          <select
+            value={filterStaffId}
+            onChange={(e) => setFilterStaffId(e.target.value)}
+            className="lmc-input px-4 py-3 w-auto min-w-[160px]"
+          >
+            <option value="">All Staff</option>
+            {staffList.map((s) => (
+              <option key={s.id} value={s.id}>{s.fullName}</option>
+            ))}
+          </select>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="lmc-input px-4 py-3 w-auto"
+            title="Start date"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="lmc-input px-4 py-3 w-auto"
+            title="End date"
+          />
+          <button
+            onClick={handleFilter}
+            className="px-5 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors cursor-pointer"
+          >
+            Apply Filters
+          </button>
         </div>
 
         {/* Logs Table */}
-        <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <div className="lmc-surface overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-sm text-muted-foreground">Loading activity logs...</p>
+            <div className="py-16 text-center">
+              <div className="spinner-ring-lg mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">Loading activity logs...</p>
+            </div>
+          ) : errorMessage ? (
+            <div className="py-16 text-center">
+              <p className="text-sm text-destructive font-medium">{errorMessage || 'Activity tracking temporarily offline'}</p>
+              <button
+                onClick={fetchActivityLogs}
+                className="mt-3 inline-flex items-center rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+              >
+                Retry
+              </button>
             </div>
           ) : filteredLogs.length === 0 ? (
-            <div className="p-8 text-center">
+            <div className="py-16 text-center">
               <p className="text-muted-foreground">No activity logs found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
+              <table className="lmc-table">
+                <thead>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Staff
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Action
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Target
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Details
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Date & Time
-                    </th>
+                    <th>Staff</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Details</th>
+                    <th>Date & Time</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody>
                   {filteredLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-muted/25">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" style={{ color: "var(--foreground)" }}>
-                        {log.user?.fullName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={clsx(
-                          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                          getActionColor(log.action)
-                        )}>
+                    <tr key={log.id}>
+                      <td className="font-medium text-foreground">{log.user?.fullName}</td>
+                      <td>
+                        <span className={getActionBadgeClass(log.action)}>
                           {log.action}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: "var(--foreground)" }}>
-                        {log.targetName || `${log.targetType} record`}
-                      </td>
-                      <td className="px-6 py-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
-                        {log.additionalInfo || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: "var(--muted-foreground)" }}>
-                        {formatDate(log.createdAt)}
-                      </td>
+                      <td className="text-foreground">{log.targetName || `${log.targetType} record`}</td>
+                      <td className="text-muted-foreground">{log.additionalInfo || '-'}</td>
+                      <td className="text-muted-foreground whitespace-nowrap">{formatDate(log.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

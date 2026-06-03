@@ -3,6 +3,13 @@ node_modules/
 .pnp
 .pnp.js
 
+
+#just incase.
+node_modules
+# Keep environment variables out of version control
+.env
+
+
 # Testing
 coverage/
 
@@ -41,5 +48,3 @@ pnpm-debug.log*
 -#WORDREFERENCES/
 -#IMAGEREFERENCES/
 
-# Middleware
-middleware.ts

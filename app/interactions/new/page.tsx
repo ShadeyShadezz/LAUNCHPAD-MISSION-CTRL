@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Users, FileText, Save, X } from 'lucide-react';
+import { Calendar, Users, FileText, Save, Building2, AlertCircle, MessageSquareQuote } from 'lucide-react';
 import { api } from '@/app/lib/api';
 import { useAuth } from '@/app/context/AuthContext';
 import { Button } from '@/app/components/Button';
@@ -13,12 +13,12 @@ interface Partner {
 }
 
 const interactionTypes = [
-  { value: 'INFOSESSION', label: 'Infosession' },
-  { value: 'TABLING', label: 'Tabling' },
-  { value: 'MEETING', label: 'Meeting' },
-  { value: 'OUTREACH', label: 'Outreach' },
-  { value: 'INTERVIEWS', label: 'Interviews' },
-  { value: 'STUDENT_APPLICATION', label: 'Student Application' },
+  { value: 'INFOSESSION', label: 'Infosession', description: 'Informational session for students' },
+  { value: 'TABLING', label: 'Tabling', description: 'Table at a career fair or event' },
+  { value: 'MEETING', label: 'Meeting', description: 'One-on-one or group meeting' },
+  { value: 'OUTREACH', label: 'Outreach', description: 'Proactive outreach to partner' },
+  { value: 'INTERVIEWS', label: 'Interviews', description: 'Student interview coordination' },
+  { value: 'STUDENT_APPLICATION', label: 'Student Application', description: 'Student submitted application' },
 ];
 
 export default function NewInteractionPage() {
@@ -78,149 +78,172 @@ export default function NewInteractionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => router.back()}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
-          >
-            <X size={20} />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Log New Interaction</h1>
-            <p className="text-muted-foreground">Record outreach activity and engagement details.</p>
-          </div>
+    <div className="lmc-page">
+      <div className="lmc-page-accent" />
+      <div className="lmc-page-inner max-w-2xl">
+        <div className="lmc-page-header">
+          <h1 className="lmc-page-title">Log New Interaction</h1>
+          <p className="lmc-page-subtitle">Record an outreach activity or engagement with a partner.</p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Partner Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Users size={16} />
-              Partner *
-            </label>
-            <select
-              required
-              value={formData.partnerId}
-              onChange={(e) => setFormData({...formData, partnerId: e.target.value})}
-              className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              <option value="">Select a partner...</option>
-              {partners.map((partner) => (
-                <option key={partner.id} value={partner.id}>
-                  {partner.organizationName}
-                </option>
-              ))}
-            </select>
-          </div>
+        <form onSubmit={handleSubmit} className="rounded-xl bg-card border border-border/80 p-6 md:p-8 shadow-sm space-y-6">
+            {/* Partner Selection */}
+            <div className="space-y-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+                <Building2 size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
+                Partner <span className="text-red-400">*</span>
+              </label>
+              <select
+                required
+                value={formData.partnerId}
+                onChange={(e) => setFormData({...formData, partnerId: e.target.value})}
+                className="h-12 w-full rounded-xl border border-border/80 bg-card text-foreground px-4 text-[15px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              >
+                <option value="">Select a partner...</option>
+                {partners.map((partner) => (
+                  <option key={partner.id} value={partner.id}>
+                    {partner.organizationName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Interaction Type */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Interaction Type *</label>
-            <select
-              required
-              value={formData.interactionType}
-              onChange={(e) => setFormData({...formData, interactionType: e.target.value})}
-              className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              {interactionTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Date */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Calendar size={16} />
-              Date *
-            </label>
-            <input
-              type="date"
-              required
-              value={formData.date}
-              onChange={(e) => setFormData({...formData, date: e.target.value})}
-              className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-
-          {/* Student Count */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Number of Students</label>
-            <input
-              type="number"
-              min="0"
-              value={formData.studentCount}
-              onChange={(e) => setFormData({...formData, studentCount: parseInt(e.target.value) || 0})}
-              className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <FileText size={16} />
-              Shared Notes
-            </label>
-            <textarea
-              value={formData.sharedNotes}
-              onChange={(e) => setFormData({...formData, sharedNotes: e.target.value})}
-              placeholder="Add any relevant notes about this interaction..."
-              rows={4}
-              className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-            />
-          </div>
-
-          {/* Follow-up */}
-          <div className="space-y-3">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.needsFollowup}
-                onChange={(e) => setFormData({...formData, needsFollowup: e.target.checked})}
-                className="w-4 h-4 rounded border-border"
-              />
-              <span className="text-sm font-medium text-foreground">Needs Follow-up</span>
-            </label>
-
-            {formData.needsFollowup && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Follow-up Due Date</label>
-                <input
-                  type="date"
-                  value={formData.followupDueDate}
-                  onChange={(e) => setFormData({...formData, followupDueDate: e.target.value})}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
+            {/* Interaction Type */}
+            <div className="space-y-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+                <MessageSquareQuote size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
+                Interaction Type <span className="text-red-400">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {interactionTypes.map((type) => (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => setFormData({...formData, interactionType: type.value})}
+                    className={`text-left px-5 py-4 rounded-xl border text-[15px] font-semibold transition-all duration-150 ${
+                      formData.interactionType === type.value
+                        ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                        : 'border-border/60 bg-card text-foreground hover:border-border hover:bg-muted/50'
+                    }`}
+                  >
+                    <span className="block text-[15px] font-bold">{type.label}</span>
+                    <span className={`block text-xs mt-1 leading-normal ${
+                      formData.interactionType === type.value ? 'text-primary/70' : 'text-muted-foreground/70'
+                    }`}>
+                      {type.description}
+                    </span>
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-6">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-primary hover:bg-primary/90 text-white"
-            >
-              <Save size={16} className="mr-2" />
-              {loading ? 'Saving...' : 'Save Interaction'}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-2 bg-muted hover:bg-muted/80 text-foreground"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </div>
+            {/* Date */}
+            <div className="space-y-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+                <Calendar size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
+                Date <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.date}
+                onChange={(e) => setFormData({...formData, date: e.target.value})}
+                className="h-12 w-full rounded-xl border border-border/80 bg-card text-foreground px-4 text-[15px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </div>
+
+            {/* Student Count */}
+            <div className="space-y-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+                <Users size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
+                Students Reached
+              </label>
+              <input
+                type="number"
+                min="0"
+                placeholder="0"
+                value={formData.studentCount}
+                onChange={(e) => setFormData({...formData, studentCount: parseInt(e.target.value) || 0})}
+                className="h-12 w-full rounded-xl border border-border/80 bg-card text-foreground px-4 text-[15px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </div>
+
+            {/* Why — Notes */}
+            <div className="space-y-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+                <FileText size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
+                Why this happened
+              </label>
+              <textarea
+                value={formData.sharedNotes}
+                onChange={(e) => setFormData({...formData, sharedNotes: e.target.value})}
+                placeholder="Describe the purpose, outcome, and any key details about this interaction..."
+                rows={4}
+                className="w-full rounded-xl border border-border/80 bg-card text-foreground px-4 py-3.5 text-[15px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none placeholder:text-muted-foreground/50"
+              />
+            </div>
+
+            {/* Follow-up */}
+            <div className="rounded-xl border border-border/60 p-5 space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-150 ${
+                  formData.needsFollowup ? 'bg-primary border-primary' : 'border-border bg-card'
+                }`}>
+                  {formData.needsFollowup && (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+                <input
+                  type="checkbox"
+                  checked={formData.needsFollowup}
+                  onChange={(e) => setFormData({...formData, needsFollowup: e.target.checked})}
+                  className="sr-only"
+                />
+                <span className="text-[15px] font-bold text-foreground">Needs follow-up</span>
+                <AlertCircle size={16} className="text-amber-500/70" strokeWidth={1.5} />
+              </label>
+
+              {formData.needsFollowup && (
+                <div className="space-y-2 pl-9">
+                  <label className="text-sm font-semibold text-muted-foreground">Follow-up due date</label>
+                  <input
+                    type="date"
+                    value={formData.followupDueDate}
+                    onChange={(e) => setFormData({...formData, followupDueDate: e.target.value})}
+                    className="h-12 w-full rounded-xl border border-border/80 bg-card text-foreground px-4 text-[15px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                fullWidth
+                size="lg"
+              >
+                <Save size={16} strokeWidth={2} className="mr-1.5" />
+                {loading ? 'Saving to activity log...' : 'Log Interaction'}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => router.back()}
+                variant="secondary"
+                size="lg"
+              >
+                Cancel
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground/40 text-center pt-1">
+              This interaction will be recorded in the activity log for audit trail.
+            </p>
+          </form>
+        </div>
     </div>
   );
 }

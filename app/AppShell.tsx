@@ -1,23 +1,24 @@
 "use client";
-import Sidebar from "./components/sidebar";
+import Sidebar, { SidebarTrigger } from "./components/sidebar";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (isLoginPage) {
-    return <main className="min-h-screen bg-background">{children}</main>;
+    return <>{children}</>;
   }
 
   return (
-    <div className="app-shell flex min-h-screen w-full">
-      <aside className="sidebar flex-shrink-0 h-screen sticky top-0 z-40">
-        <Sidebar />
-      </aside>
-      <main className="main-content flex flex-col flex-1 min-h-screen bg-[var(--background)]">
+    <div className="flex-1 h-full flex overflow-hidden">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <SidebarTrigger onClick={() => setSidebarOpen(true)} visible={!sidebarOpen} />
+      <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
         {children}
-      </main>
+      </div>
     </div>
   );
 }

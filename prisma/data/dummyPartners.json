@@ -1,0 +1,79 @@
+[
+  {
+    "organizationName": "Launchpad Technologies",
+    "logoUrl": "https://placehold.co/400x400?text=Launchpad",
+    "industry": "Software",
+    "description": "Cloud-based solutions for startups and enterprises.",
+    "websiteUrl": "https://launchpad.com",
+    "schoolType": "University",
+    "officialStatusDate": "2024-01-15T00:00:00.000Z",
+    "partnerType": "Strategic",
+    "partnerStatus": "Active",
+    "currentStatusNotes": "Strong engagement with monthly hiring pipeline updates.",
+    "earlyReleaseForSeniors": true,
+    "courseNumber": 3,
+    "tags": ["Technology", "Internships", "High Priority"],
+    "contacts": [
+      { "name": "Sarah Kim", "email": "sarah.kim@launchpad.com", "title": "Partnership Director", "contactType": "LEADERSHIP" },
+      { "name": "Marcus Lee", "email": "marcus.lee@launchpad.com", "title": "Campus Recruiting Lead", "contactType": "PRIMARY" },
+      { "name": "Nina Patel", "email": "nina.patel@launchpad.com", "title": "Program Coordinator", "contactType": "SECONDARY" }
+    ]
+  },
+  {
+    "organizationName": "Neon Robotics",
+    "logoUrl": "https://placehold.co/400x400?text=Neon+Robotics",
+    "industry": "Robotics",
+    "description": "AI-powered robotics for manufacturing and logistics.",
+    "websiteUrl": "https://neonrobotics.ai",
+    "schoolType": "Vocational",
+    "officialStatusDate": "2023-10-10T00:00:00.000Z",
+    "partnerType": "Technical",
+    "partnerStatus": "Active",
+    "currentStatusNotes": "Requested additional tabling opportunities for fall cohort.",
+    "earlyReleaseForSeniors": false,
+    "courseNumber": 2,
+    "tags": ["Robotics", "STEM"],
+    "contacts": [
+      { "name": "Ari Stone", "email": "ari.stone@neonrobotics.ai", "title": "VP of Talent", "contactType": "LEADERSHIP" },
+      { "name": "Janet Hsu", "email": "janet.hsu@neonrobotics.ai", "title": "Employer Relations", "contactType": "PRIMARY" }
+    ]
+  },
+  {
+    "organizationName": "EduVerse",
+    "logoUrl": "https://placehold.co/400x400?text=EduVerse",
+    "industry": "EdTech",
+    "description": "Immersive learning platforms and digital curriculum services.",
+    "websiteUrl": "https://eduverse.org",
+    "schoolType": "Community College",
+    "officialStatusDate": "2024-03-05T00:00:00.000Z",
+    "partnerType": "Community",
+    "partnerStatus": "Pending",
+    "currentStatusNotes": "Waiting on final MOU review from legal counsel.",
+    "earlyReleaseForSeniors": true,
+    "courseNumber": 1,
+    "tags": ["Education", "Curriculum"],
+    "contacts": [
+      { "name": "Olivia Reed", "email": "olivia.reed@eduverse.org", "title": "Program Director", "contactType": "PRIMARY" },
+      { "name": "Tomas Grant", "email": "tomas.grant@eduverse.org", "title": "Outreach Specialist", "contactType": "SECONDARY" }
+    ]
+  },
+  {
+    "organizationName": "GreenTech Innovations",
+    "logoUrl": "https://placehold.co/400x400?text=GreenTech",
+    "industry": "Clean Energy",
+    "description": "Sustainable energy solutions and workforce training partnerships.",
+    "websiteUrl": "https://greentech.com",
+    "schoolType": "High School",
+    "officialStatusDate": "2022-08-20T00:00:00.000Z",
+    "partnerType": "Apprenticeship",
+    "partnerStatus": "Inactive",
+    "currentStatusNotes": "Program paused pending budget renewal for next fiscal cycle.",
+    "earlyReleaseForSeniors": false,
+    "courseNumber": 4,
+    "tags": ["Energy", "Apprenticeship"],
+    "contacts": [
+      { "name": "Derek Owens", "email": "derek.owens@greentech.com", "title": "Operations Director", "contactType": "LEADERSHIP" },
+      { "name": "Paula Diaz", "email": "paula.diaz@greentech.com", "title": "Talent Coordinator", "contactType": "PRIMARY" }
+    ]
+  }
+]

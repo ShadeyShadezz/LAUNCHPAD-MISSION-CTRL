@@ -10,9 +10,5 @@
   ],
   "env": {
     "NEXT_PUBLIC_BACKEND_URL": "@next_public_backend_url"
-  },
-  "functions": {
-    "**/*.js": { "maxDuration": 10 },
-    "**/*.ts": { "maxDuration": 10 }
   }
 }

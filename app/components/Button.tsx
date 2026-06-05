@@ -7,10 +7,11 @@ import { clsx } from 'clsx';
 const buttonVariants = cva(
   [
     'btn',
-    'inline-flex items-center justify-center gap-2',
-    'rounded-xl',
-    'font-medium',
-    'tracking-[-0.01em]',
+    'inline-flex items-center justify-center gap-3',
+    'rounded-md border border-transparent',
+    'font-bold uppercase',
+    'no-underline hover:no-underline',
+    'tracking-[0.08em]',
     'transition-all duration-200',
     'ease-[cubic-bezier(0.25,0.46,0.45,0.94)]',
     'active:translate-y-[1px] active:transition-none',
@@ -21,36 +22,35 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
-          'bg-gradient-to-br from-emerald-500 to-emerald-700',
-          'text-primary-foreground',
-          'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_6px_rgba(0,0,0,0.04),0_10px_24px_-12px_rgba(6,95,70,0.6)]',
+          'bg-[#047857]',
+          'text-[#ffffff]',
+          'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_6px_rgba(0,0,0,0.04),0_10px_24px_-12px_rgba(4,120,87,0.6)]',
+          'hover:bg-[#047857]',
           'hover:-translate-y-[1px]',
-          'hover:shadow-[0_6px_15px_-3px_rgba(16,185,129,0.35),0_12px_32px_-16px_rgba(6,95,70,0.5)]',
-          'dark:shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_2px_4px_rgba(0,0,0,0.4),0_10px_24px_-12px_rgba(6,95,70,0.6)]',
-          'dark:hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_6px_15px_-3px_rgba(16,185,129,0.35),0_12px_32px_-16px_rgba(6,95,70,0.5)]',
+          'hover:shadow-[0_6px_15px_-3px_rgba(4,120,87,0.35),0_12px_32px_-16px_rgba(4,120,87,0.5)]',
         ],
         secondary: [
           'bg-transparent',
           'border border-border/70',
           'text-foreground',
-          'hover:bg-emerald-500/6',
-          'hover:border-emerald-400/60',
-          'hover:text-emerald-700',
+          'hover:bg-brand-500/6',
+          'hover:border-brand-400/60',
+          'hover:text-brand-700',
           'hover:-translate-y-[1px]',
-          'hover:shadow-[0_6px_15px_-3px_rgba(16,185,129,0.12)]',
-          'dark:hover:border-emerald-400/40',
+          'hover:shadow-[0_6px_15px_-3px_rgb(var(--brand-500)/0.12)]',
+          'dark:hover:border-brand-400/40',
         ],
         outline: [
           'bg-transparent',
-          'border-2 border-emerald-500/30',
-          'text-emerald-700',
-          'hover:bg-emerald-500/8',
+          'border-2 border-brand-500/30',
+          'text-brand-700',
+          'hover:bg-brand-500/8',
           'hover:-translate-y-[1px]',
-          'hover:shadow-[0_6px_15px_-3px_rgba(16,185,129,0.15)]',
-          'dark:text-emerald-400',
+          'hover:shadow-[0_6px_15px_-3px_rgb(var(--brand-500)/0.15)]',
+          'dark:text-brand-400',
         ],
         destructive: [
-          'bg-gradient-to-br from-red-500 to-red-600',
+          'btn-destructive-variant',
           'text-destructive-foreground',
           'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_6px_rgba(0,0,0,0.04)]',
           'hover:-translate-y-[1px]',
@@ -58,19 +58,20 @@ const buttonVariants = cva(
         ],
         ghost: [
           'bg-transparent',
+          'border border-transparent',
           'text-muted-foreground',
           'hover:bg-muted/50',
           'hover:text-foreground',
         ],
         success: [
-          'bg-gradient-to-br from-emerald-400 to-emerald-600',
+          'btn-success-variant',
           'text-success-foreground',
           'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_6px_rgba(0,0,0,0.04)]',
           'hover:-translate-y-[1px]',
-          'hover:shadow-[0_6px_15px_-3px_rgba(16,185,129,0.3)]',
+          'hover:shadow-[0_6px_15px_-3px_rgb(var(--brand-500)/0.3)]',
         ],
         warning: [
-          'bg-gradient-to-br from-amber-400 to-amber-600',
+          'btn-warning-variant',
           'text-warning-foreground',
           'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_6px_rgba(0,0,0,0.04)]',
           'hover:-translate-y-[1px]',
@@ -78,11 +79,11 @@ const buttonVariants = cva(
         ],
       },
       size: {
-        sm: 'h-9 px-3 text-xs min-w-[2.25rem]',
-        md: 'h-10 px-4 text-sm min-w-[2.5rem]',
-        lg: 'h-11 px-5 text-base min-w-[2.75rem]',
-        xl: 'h-12 px-6 text-lg min-w-[3rem]',
-        icon: 'h-9 w-9 p-0 min-w-0',
+        sm: 'px-2.5 py-1.5 text-[10px] min-w-[2.25rem]',
+        md: 'px-2.5 py-1.5 text-xs min-w-[2.5rem]',
+        lg: 'px-2.5 py-1.5 text-sm min-w-[2.75rem]',
+        xl: 'px-2.5 py-1.5 text-base min-w-[3rem]',
+        icon: 'h-10 w-10 p-0 min-w-0 rounded-md',
       },
       fullWidth: {
         true: 'w-full',
@@ -114,6 +115,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className
       )}
       disabled={disabled || isLoading}
+      aria-busy={isLoading || undefined}
       {...props}
     >
       {isLoading ? (

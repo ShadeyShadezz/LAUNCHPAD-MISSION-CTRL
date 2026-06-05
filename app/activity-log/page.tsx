@@ -102,6 +102,7 @@ const ActivityLogPage = () => {
       <div className="lmc-page-accent" />
       <div className="lmc-page-inner max-w-7xl">
         <div className="lmc-page-header">
+          <span className="lmc-kicker">Audit Trail</span>
           <div>
             <h1 className="lmc-page-title">Activity Log</h1>
             <p className="lmc-page-subtitle">Audit trail of all system activities</p>
@@ -109,7 +110,8 @@ const ActivityLogPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+        <div className="lmc-panel p-4 md:p-5">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
             <input
@@ -168,11 +170,13 @@ const ActivityLogPage = () => {
             title="End date"
           />
           <button
+            type="button"
             onClick={handleFilter}
-            className="px-5 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors cursor-pointer"
+            className="lmc-btn-inline px-5 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
           >
             Apply Filters
           </button>
+          </div>
         </div>
 
         {/* Logs Table */}
@@ -187,7 +191,7 @@ const ActivityLogPage = () => {
               <p className="text-sm text-destructive font-medium">{errorMessage || 'Activity tracking temporarily offline'}</p>
               <button
                 onClick={fetchActivityLogs}
-                className="mt-3 inline-flex items-center rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+                className="lmc-btn-inline mt-3 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
               >
                 Retry
               </button>

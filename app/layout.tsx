@@ -24,21 +24,21 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	const pathname = usePathname();
-	const isLoginPage = pathname === "/login";
+	const isAuthSurface = pathname === "/login" || pathname.startsWith("/auth/");
 
 	return (
 		<html
 			lang="en"
-			className={`${manrope.variable} ${spaceGrotesk.variable} h-full scroll-smooth`}
+			className={`${manrope.variable} ${spaceGrotesk.variable} min-h-full scroll-smooth`}
 			suppressHydrationWarning
 		>
 			<body
-				className={`${manrope.className} h-full bg-background text-foreground antialiased overflow-hidden selection:bg-primary/20`}
+				className={`${manrope.className} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20`}
 			>
 				<AuthProvider>
 					<ThemeProvider>
-						<main className="h-full flex overflow-hidden relative">
-							{isLoginPage ? children : <AppShell>{children}</AppShell>}
+						<main className="relative min-h-screen">
+							{isAuthSurface ? children : <AppShell>{children}</AppShell>}
 						</main>
 					</ThemeProvider>
 				</AuthProvider>

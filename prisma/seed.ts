@@ -46,7 +46,6 @@ async function main() {
       passwordHash,
       fullName: 'Test User',
       role: 'ADMINISTRATOR',
-      title: 'Test Admin',
       accessLevel: 'admin',
     },
   });
@@ -59,7 +58,6 @@ async function main() {
       passwordHash,
       fullName: 'Program Coordinator',
       role: 'PROGRAM_COORDINATOR',
-      title: 'Program Coordinator',
       accessLevel: 'staff',
     },
   });

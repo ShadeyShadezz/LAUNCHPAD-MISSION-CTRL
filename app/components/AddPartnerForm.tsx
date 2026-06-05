@@ -127,7 +127,7 @@ export default function AddPartnerForm() {
         <h1 className="text-3xl font-bold mb-8">Add New Partnership</h1>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg text-red-800">
+          <div className="mb-6 p-4 lmc-banner lmc-banner--error rounded-lg">
             {error}
           </div>
         )}
@@ -223,7 +223,7 @@ export default function AddPartnerForm() {
                       <button
                         type="button"
                         onClick={() => removeContactField(index)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-destructive hover:text-destructive/80 transition-colors"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -280,7 +280,7 @@ export default function AddPartnerForm() {
               <button
                 type="button"
                 onClick={addContactField}
-                className="flex items-center gap-2 text-primary hover:text-primary/80 font-medium"
+                className="flex items-center gap-3 text-primary hover:text-primary/80 font-medium"
               >
                 <Plus className="w-4 h-4" />
                 Add Another Contact
@@ -298,7 +298,7 @@ export default function AddPartnerForm() {
                 </label>
                 <div className="flex gap-4">
                   {['Active', 'Pending', 'Inactive'].map((status) => (
-                    <label key={status} className="flex items-center gap-2 cursor-pointer">
+                    <label key={status} className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="radio"
                         name="partnerStatus"

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Shield, Mail, FileText, Settings, LogOut,
-  StickyNote, Building2, ListChecks, ChevronLeft, Rocket,
+  StickyNote, Building2, ListChecks, ChevronLeft, Rocket, Users,
   PanelLeftClose, PanelLeft
 } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -18,17 +18,18 @@ const navItems = [
   { href: '/email', label: 'Email', icon: Mail },
   { href: '/interactions', label: 'Interactions', icon: ListChecks },
   { href: '/staff-notes', label: 'Staff Notes', icon: StickyNote },
+  { href: '/staff', label: 'Staff Members', icon: Users },
   { href: '/activity-log', label: 'Activity Log', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export function SidebarOverlay({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) {
+export function SidebarOverlay({ sidebarOpen, onClose }: { sidebarOpen: boolean; onClose: () => void }) {
   if (!sidebarOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-40 bg-black/70 transition-opacity duration-300"
-      onClick={() => setSidebarOpen(false)}
+      className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-opacity duration-300 lg:hidden"
+      onClick={onClose}
       aria-hidden="true"
     />
   );
@@ -39,6 +40,24 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   const { logout, user } = useAuth();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 1023px)');
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setCollapsed(false);
+      }
+    };
+
+    if (mediaQuery.matches) {
+      setCollapsed(false);
+    }
+
+    mediaQuery.addEventListener('change', handleViewportChange);
+    return () => {
+      mediaQuery.removeEventListener('change', handleViewportChange);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -57,16 +76,19 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   return (
     <>
-      <SidebarOverlay sidebarOpen={isOpen} setSidebarOpen={onClose} />
+      <SidebarOverlay sidebarOpen={isOpen} onClose={onClose} />
 
       <aside
         aria-label="Main navigation"
         className={clsx(
-          'fixed top-0 left-0 z-50 h-full overflow-hidden',
+          'fixed inset-y-0 left-0 z-50 h-screen overflow-hidden',
           'sidebar-glass',
-          'transition-all duration-300 ease-in-out',
+          'transition-transform duration-300 ease-in-out',
           'flex flex-col',
-          collapsed ? 'sidebar-collapsed' : 'w-72'
+          'w-[var(--sidebar-width)]',
+          isOpen ? 'translate-x-0' : '-translate-x-full',
+          'lg:sticky lg:top-0 lg:z-30 lg:translate-x-0',
+          collapsed && 'sidebar-collapsed'
         )}
       >
         {/* ─── BRAND ─── */}
@@ -80,7 +102,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           </div>
           <button
             onClick={() => setCollapsed(v => !v)}
-            className="sidebar-collapse-btn"
+            className="sidebar-collapse-btn hidden lg:flex"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <PanelLeftClose size={16} strokeWidth={2} />
@@ -118,7 +140,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         {/* ─── FOOTER: User + Logout ─── */}
         <div className="sidebar-footer">
           <div className={clsx(
-            'flex items-center gap-2.5 px-2 py-1.5 rounded-lg',
+            'flex items-center gap-3 px-2 py-1.5 rounded-lg',
             !collapsed && 'px-2.5'
           )}>
             <div className="sidebar-user-avatar">
@@ -152,20 +174,23 @@ export function SidebarTrigger({ onClick, visible }: { onClick: () => void; visi
     <button
       onClick={onClick}
       className={clsx(
-        'fixed top-6 left-0 z-30',
-        'flex items-center justify-center',
-        'w-11 h-14 rounded-r-xl',
-        'bg-gradient-to-r from-emerald-600 to-emerald-500',
-        'border-0',
-        'text-primary-foreground shadow-lg shadow-emerald-500/25',
-        'hover:shadow-xl hover:shadow-emerald-500/30 hover:brightness-110',
-        'active:brightness-95',
+        'fixed left-3 top-3 z-30 lg:hidden',
+        'flex flex-col items-center justify-center gap-0.5',
+        'h-16 w-14 rounded-2xl',
+        'bg-gradient-to-br from-brand-600 to-brand-500',
+        'border-2 border-brand-400/30',
+        'text-primary-foreground shadow-xl shadow-brand-500/30',
+        'hover:shadow-2xl hover:shadow-brand-500/40 hover:brightness-110 hover:-translate-y-0.5',
+        'active:brightness-95 active:translate-y-0',
         'transition-all duration-200',
         visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       )}
       aria-label="Open sidebar"
     >
-      <PanelLeft size={18} strokeWidth={2} />
+      <PanelLeft size={24} strokeWidth={2} />
+      <div className="flex gap-0.5" aria-hidden>
+        <div className="w-3 h-0.5 rounded-full bg-primary-foreground/60" />
+      </div>
     </button>
   );
 }

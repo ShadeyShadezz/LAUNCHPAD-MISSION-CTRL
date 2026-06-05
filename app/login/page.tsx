@@ -77,12 +77,13 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Field */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">
+                <label htmlFor="login-email" className="text-xs font-medium text-muted-foreground">
                   Email Address
                 </label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                   <input
+                    id="login-email"
                     type="email"
                     placeholder="test@launchpad.com"
                     value={email}
@@ -95,12 +96,13 @@ export default function LoginPage() {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">
+                <label htmlFor="login-password" className="text-xs font-medium text-muted-foreground">
                   Password
                 </label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                   <input
+                    id="login-password"
                     type="password"
                     placeholder="••••••••••••"
                     value={password}
@@ -115,7 +117,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !email || !password}
-                className="w-full h-10 px-4 rounded-lg font-semibold text-primary-foreground bg-primary shadow-sm hover:shadow hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-[0.99] flex items-center justify-center gap-2 text-sm"
+                className="w-full h-10 px-4 rounded-lg font-semibold text-primary-foreground bg-primary shadow-sm hover:shadow hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-[0.99] lmc-btn-inline gap-2 text-sm"
               >
                 {loading ? (
                   <>

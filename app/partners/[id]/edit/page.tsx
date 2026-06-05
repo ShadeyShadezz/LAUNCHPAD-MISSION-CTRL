@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, X } from 'lucide-react';
-import { Button } from '@/app/components/Button';
+import { Button, buttonVariants } from '@/app/components/Button';
 
 interface Contact {
   id?: string;
@@ -139,7 +139,7 @@ export default function EditPartnerPage() {
           <p className="text-muted-foreground mb-4">The partner you're looking for doesn't exist.</p>
           <Link
             href="/partners"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            className="lmc-btn-inline gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
           >
             <ArrowLeft size={16} />
             Back to Partners
@@ -313,8 +313,8 @@ export default function EditPartnerPage() {
             >
               {loading ? 'Updating Partner...' : 'Update Partner'}
             </Button>
-            <Link href="/partners">
-              <Button variant="secondary">Cancel</Button>
+            <Link href="/partners" className={buttonVariants({ variant: 'secondary', size: 'md' })}>
+              Cancel
             </Link>
           </div>
         </form>

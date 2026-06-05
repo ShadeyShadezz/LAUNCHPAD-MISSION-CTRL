@@ -89,9 +89,9 @@ export default function NewInteractionPage() {
         <form onSubmit={handleSubmit} className="rounded-xl bg-card border border-border/80 p-6 md:p-8 shadow-sm space-y-6">
             {/* Partner Selection */}
             <div className="space-y-2">
-              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-3">
                 <Building2 size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
-                Partner <span className="text-red-400">*</span>
+                Partner <span className="lmc-required">*</span>
               </label>
               <select
                 required
@@ -110,26 +110,24 @@ export default function NewInteractionPage() {
 
             {/* Interaction Type */}
             <div className="space-y-2">
-              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-3">
                 <MessageSquareQuote size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
-                Interaction Type <span className="text-red-400">*</span>
+                Interaction Type <span className="lmc-required">*</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {interactionTypes.map((type) => (
                   <button
                     key={type.value}
                     type="button"
                     onClick={() => setFormData({...formData, interactionType: type.value})}
-                    className={`text-left px-5 py-4 rounded-xl border text-[15px] font-semibold transition-all duration-150 ${
+                    className={`lmc-type-card ${
                       formData.interactionType === type.value
-                        ? 'border-primary bg-primary/10 text-primary shadow-sm'
-                        : 'border-border/60 bg-card text-foreground hover:border-border hover:bg-muted/50'
+                        ? 'lmc-type-card--selected'
+                        : 'lmc-type-card--deselected'
                     }`}
                   >
                     <span className="block text-[15px] font-bold">{type.label}</span>
-                    <span className={`block text-xs mt-1 leading-normal ${
-                      formData.interactionType === type.value ? 'text-primary/70' : 'text-muted-foreground/70'
-                    }`}>
+                    <span className="lmc-type-card__desc">
                       {type.description}
                     </span>
                   </button>
@@ -139,9 +137,9 @@ export default function NewInteractionPage() {
 
             {/* Date */}
             <div className="space-y-2">
-              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-3">
                 <Calendar size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
-                Date <span className="text-red-400">*</span>
+                Date <span className="lmc-required">*</span>
               </label>
               <input
                 type="date"
@@ -154,7 +152,7 @@ export default function NewInteractionPage() {
 
             {/* Student Count */}
             <div className="space-y-2">
-              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-3">
                 <Users size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
                 Students Reached
               </label>
@@ -170,7 +168,7 @@ export default function NewInteractionPage() {
 
             {/* Why — Notes */}
             <div className="space-y-2">
-              <label className="text-[15px] font-bold text-foreground flex items-center gap-2">
+              <label className="text-[15px] font-bold text-foreground flex items-center gap-3">
                 <FileText size={16} className="text-muted-foreground/60" strokeWidth={1.5} />
                 Why this happened
               </label>
@@ -186,8 +184,8 @@ export default function NewInteractionPage() {
             {/* Follow-up */}
             <div className="rounded-xl border border-border/60 p-5 space-y-3">
               <label className="flex items-center gap-3 cursor-pointer">
-                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-150 ${
-                  formData.needsFollowup ? 'bg-primary border-primary' : 'border-border bg-card'
+                <div className={`lmc-checkbox ${
+                  formData.needsFollowup ? 'lmc-checkbox--checked' : 'lmc-checkbox--unchecked'
                 }`}>
                   {formData.needsFollowup && (
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -202,7 +200,7 @@ export default function NewInteractionPage() {
                   className="sr-only"
                 />
                 <span className="text-[15px] font-bold text-foreground">Needs follow-up</span>
-                <AlertCircle size={16} className="text-amber-500/70" strokeWidth={1.5} />
+                <AlertCircle size={16} className="text-warning/70" strokeWidth={1.5} />
               </label>
 
               {formData.needsFollowup && (

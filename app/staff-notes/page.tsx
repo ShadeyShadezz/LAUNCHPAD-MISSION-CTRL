@@ -3,7 +3,7 @@
 import { useAuth } from '@/app/context/AuthContext';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, Loader2, MessageSquare, FileText } from 'lucide-react';
+import { Send, Loader2, MessageSquare } from 'lucide-react';
 import { Button } from '@/app/components/Button';
 
 type Note = {
@@ -83,32 +83,33 @@ export default function StaffNotesPage() {
         <div className="lmc-page-header">
           <div>
             <h1 className="lmc-page-title">Staff Notes</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Shared notes visible to all staff members.</p>
+            <p className="lmc-page-subtitle">Shared notes visible to all staff members.</p>
           </div>
         </div>
 
         {error && (
-          <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive font-semibold flex items-center justify-between">
+          <div className="lmc-banner lmc-banner--error flex items-center justify-between">
             <span>{error}</span>
             <button className="underline text-sm" onClick={fetchNotes}>Retry</button>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="lmc-surface p-4 md:p-5 flex gap-3">
+          <div className="lmc-surface p-5 md:p-6 grid grid-cols-[1fr_auto] items-stretch gap-4">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write a note for the team..."
               rows={2}
-              className="flex-1 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full min-h-[48px] rounded-xl lmc-input-base !border-0 focus:!border-0 px-4 py-3 text-sm resize-none"
             />
             <Button
               type="submit"
+              size="xl"
               disabled={posting || !content.trim()}
-              className="self-end"
+              className="min-h-[48px] min-w-[120px] self-center justify-center px-6"
             >
-              {posting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              {posting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
               Post
             </Button>
           </div>
@@ -128,24 +129,38 @@ export default function StaffNotesPage() {
             <p className="text-sm text-muted-foreground">Post one above to get started.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {notes.map((note) => (
-              <div key={note.id} className="lmc-surface p-5">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
-                    <FileText size={14} />
-                  </div>
+          <div className="space-y-6">
+            {notes.map((note) => {
+              const createdAt = new Date(note.createdAt);
+              const createdDate = createdAt.toLocaleDateString('en-US', {
+                month: 'numeric',
+                day: 'numeric',
+                year: 'numeric',
+              });
+              const createdTime = createdAt.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+              });
+
+              return (
+                <div key={note.id} className="lmc-surface p-7">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{note.content}</p>
-                    <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-semibold text-foreground">{note.author.fullName}</span>
-                      <span>&middot;</span>
-                      <span>{new Date(note.createdAt).toLocaleString()}</span>
+                    <p className="text-base text-foreground whitespace-pre-wrap break-words leading-relaxed">{note.content}</p>
+                    <div className="mt-5 text-sm">
+                      <span className="inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 font-semibold text-foreground mr-[14px] mb-2">
+                        {note.author.fullName}
+                      </span>
+                      <span className="inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 text-muted-foreground mr-[14px] mb-2">
+                        {createdDate}
+                      </span>
+                      <span className="inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 text-muted-foreground mb-2">
+                        {createdTime}
+                      </span>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

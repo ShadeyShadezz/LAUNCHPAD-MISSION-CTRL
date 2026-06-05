@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
-import { Button } from '@/app/components/Button';
+import { Button, buttonVariants } from '@/app/components/Button';
 
 interface Contact {
   name: string;
@@ -260,8 +260,8 @@ export default function NewPartnerPage() {
             >
               {loading ? 'Creating Partner...' : 'Create Partner'}
             </Button>
-            <Link href="/partners">
-              <Button variant="secondary">Cancel</Button>
+            <Link href="/partners" className={buttonVariants({ variant: 'secondary', size: 'md' })}>
+              Cancel
             </Link>
           </div>
         </form>

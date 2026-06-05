@@ -4,8 +4,8 @@ import { useAuth } from '@/app/context/AuthContext';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, ChevronDown, ChevronRight, Building2, Users, Calendar, BadgeCheck } from 'lucide-react';
-import Link from 'next/link';
 import { ListSkeletonComponent } from '@/app/components/skeletons';
+import { buttonVariants } from '@/app/components/Button';
 
 type Contact = {
   id: string;
@@ -60,7 +60,7 @@ function MissingBadge({ label }: { label: string }) {
 function InfoBox({ label, value, span, missing }: { label: string; value: string; span?: boolean; missing?: boolean }) {
   return (
     <div className={span ? 'md:col-span-2 lg:col-span-3' : ''}>
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">{label}</p>
+      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-0.5">{label}</p>
       {missing ? (
         <MissingBadge label={value} />
       ) : (
@@ -116,10 +116,10 @@ export default function PartnershipsPage() {
     const items = data as Array<unknown>;
     return (
       <div>
-        <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Past Cohort Members</h4>
-        <div className="flex flex-wrap gap-2">
+        <h4 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">Past Cohort Members</h4>
+        <div className="flex flex-wrap gap-3">
           {items.map((item, i) => (
-            <span key={i} className="inline-flex px-2.5 py-1 rounded-full text-xs bg-muted text-foreground border border-border">
+            <span key={i} className="inline-flex px-2.5 py-1 rounded-full text-sm bg-muted text-foreground border border-border">
               {typeof item === 'string' ? item : JSON.stringify(item)}
             </span>
           ))}
@@ -130,10 +130,10 @@ export default function PartnershipsPage() {
 
   const getStatusBadge = (status: string | null) => {
     switch (status) {
-      case 'Active': return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
-      case 'Pending': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
-      case 'Inactive': return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
-      default: return 'bg-muted/10 text-muted-foreground border-muted/20';
+      case 'Active': return 'lmc-status-badge lmc-status-badge--active';
+      case 'Pending': return 'lmc-status-badge lmc-status-badge--pending';
+      case 'Inactive': return 'lmc-status-badge lmc-status-badge--ineligible';
+      default: return 'lmc-status-badge bg-muted/10 text-muted-foreground border-muted/20';
     }
   };
 
@@ -154,7 +154,7 @@ export default function PartnershipsPage() {
           <p className="text-muted-foreground mb-6">This page is available to administrators only.</p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="inline-flex items-center rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
+            className={buttonVariants({ size: 'md' })}
           >
             Back to Dashboard
           </button>
@@ -178,7 +178,7 @@ export default function PartnershipsPage() {
 
         {/* ─── ERROR ─── */}
         {error && !loading && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3.5 text-red-500 font-semibold flex items-center justify-between">
+          <div className="lmc-banner lmc-banner--error flex items-center justify-between">
             <span>{error}</span>
             <button className="underline text-sm" onClick={() => window.location.reload()}>Retry</button>
           </div>
@@ -197,34 +197,34 @@ export default function PartnershipsPage() {
             <Building2 size={40} className="mx-auto text-muted-foreground mb-4" />
             <p className="text-lg font-semibold text-foreground">No partnerships found</p>
             <p className="text-sm text-muted-foreground mt-1">Add partners through the Partners page first.</p>
-            <Link href="/partners/new" className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md">
+            <button type="button" onClick={() => router.push('/partners/new')} className={buttonVariants({ size: 'md' })}>
               Add Partner
-            </Link>
+            </button>
           </div>
         )}
 
         {/* ─── PARTNERS ─── */}
         {!loading && !error && partners.length > 0 && (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-[25px]">
             {partners.map((p) => (
               <div key={p.id} className="lmc-surface lmc-surface--interactive overflow-hidden">
                 {/* List row */}
                 <button
                   onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                  className="w-full flex items-center justify-between px-6 py-5 hover:bg-muted/20 transition-colors text-left"
+                  className="lmc-partnership-row-btn w-full flex items-center justify-between px-6 py-5 transition-colors text-left"
                 >
-                  <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
                     <div className="text-muted-foreground/40 shrink-0 transition-transform duration-200" style={{ transform: expandedId === p.id ? 'rotate(90deg)' : undefined }}>
                       <ChevronRight size={18} />
                     </div>
                     <div className="min-w-0">
                       <h3 className="text-base font-bold text-foreground truncate mb-1.5">{p.organizationName}</h3>
                       <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5">
-                        <span className={`inline-flex px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${getStatusBadge(p.partnerStatus)}`}>
+                        <span className={`inline-flex px-3 py-0.5 rounded-full text-sm font-bold uppercase tracking-wider border ${getStatusBadge(p.partnerStatus)}`}>
                           {p.partnerStatus || <MissingBadge label="Not Set" />}
                         </span>
                         {p.partnerType ? (
-                          <span className="inline-flex px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-muted/50 text-muted-foreground/70 border border-border/60">
+                          <span className="inline-flex px-2.5 py-0.5 rounded-md text-sm font-semibold bg-muted/50 text-muted-foreground/70 border border-border/60">
                             {p.partnerType}
                           </span>
                         ) : (
@@ -233,11 +233,11 @@ export default function PartnershipsPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                    <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/30 text-muted-foreground/70">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
+                    <span className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/30 text-muted-foreground/70">
                       <Users size={13} /> {p.contacts.length}
                     </span>
-                    <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/30 text-muted-foreground/70">
+                    <span className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/30 text-muted-foreground/70">
                       <Calendar size={13} /> {p.interactions.length}
                     </span>
                   </div>
@@ -245,17 +245,17 @@ export default function PartnershipsPage() {
 
                 {/* Expanded content */}
                 {expandedId === p.id && (
-                  <div className="border-t border-border/50 px-6 py-5 space-y-5 animate-fade-in bg-muted/20">
+                  <div className="border-t border-border/50 px-8 py-6 space-y-6 animate-fade-in bg-muted/20">
                     {/* Core Information */}
                     <div>
-                      <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
+                      <h4 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-3">
                         <BadgeCheck size={14} /> Core Information
                       </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         <InfoBox label="Industry" value={p.industry || 'Not Specified'} missing={!p.industry} />
                         {p.websiteUrl ? (
                           <div>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Website</p>
+                            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Website</p>
                             <a href={p.websiteUrl} target="_blank" rel="noreferrer" className="text-sm font-medium text-primary hover:underline break-all">
                               {p.websiteUrl}
                             </a>
@@ -286,24 +286,24 @@ export default function PartnershipsPage() {
 
                     {/* Contacts */}
                     <div>
-                      <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
+                      <h4 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-3">
                         <Users size={14} /> Contacts ({p.contacts.length})
                       </h4>
                       {p.contacts.length === 0 ? (
-                        <p className="text-sm text-muted-foreground italic flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground italic flex items-center gap-3">
                           <MissingBadge label="No Contacts on File" />
                         </p>
                       ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {p.contacts.map((c) => (
-                            <div key={c.id} className="rounded-lg border border-border bg-card p-3 flex items-center justify-between gap-3">
+                            <div key={c.id} className="rounded-lg border border-border bg-card p-4 flex items-center justify-between gap-4">
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-foreground truncate">{c.name || <MissingBadge label="Unnamed Contact" />}</p>
-                                <p className="text-xs text-muted-foreground truncate">
+                                <p className="text-sm text-muted-foreground truncate">
                                   {c.email || <MissingBadge label="No Email" />}
                                   {c.title ? <span> &middot; {c.title}</span> : <span className="ml-1"><MissingBadge label="No Title" /></span>}
                                 </p>
-                                <span className="inline-flex px-2 py-0.5 mt-1 rounded text-[10px] font-semibold uppercase bg-primary/10 text-primary">
+                                <span className="inline-flex px-2 py-0.5 mt-1 rounded text-sm font-semibold uppercase bg-primary/10 text-primary">
                                   {c.contactType}
                                 </span>
                               </div>
@@ -319,7 +319,7 @@ export default function PartnershipsPage() {
                                   router.push(`/email?${params.toString()}`);
                                 }}
                                 disabled={!c.email}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 text-primary px-2.5 py-1.5 text-xs font-semibold hover:bg-primary/20 transition-colors shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className={buttonVariants({ size: 'sm' })}
                               >
                                 <Mail size={12} />
                                 Email
@@ -332,38 +332,38 @@ export default function PartnershipsPage() {
 
                     {/* Interactions */}
                     <div>
-                      <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
+                      <h4 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-3">
                         <Calendar size={14} /> Interactions ({p.interactions.length})
                       </h4>
                       {p.interactions.length === 0 ? (
-                        <p className="text-sm text-muted-foreground italic flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground italic flex items-center gap-3">
                           <MissingBadge label="No Interactions Recorded" />
                         </p>
                       ) : (
                         <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                           {p.interactions.map((ix) => (
-                            <div key={ix.id} className="rounded-lg border border-border bg-card p-3">
-                              <div className="flex items-center justify-between gap-3 mb-1">
+                            <div key={ix.id} className="rounded-lg border border-border bg-card p-4">
+                              <div className="flex items-center justify-between gap-4 mb-1.5">
                                 <span className="text-sm font-semibold text-foreground">{ix.interactionLabel}</span>
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                <span className="text-sm text-muted-foreground whitespace-nowrap">
                                   {new Date(ix.createdAt).toLocaleDateString()}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                                 <span>By: <span className="font-medium text-foreground">{ix.staffName || <MissingBadge label="Unknown" />}</span></span>
                                 <span>Students: <span className="font-medium text-foreground">{ix.studentCount ?? 0}</span></span>
                                 {ix.needsFollowup && (
-                                  <span className="text-amber-500 font-medium">
+                                  <span className="lmc-followup-badge text-sm font-medium">
                                     Follow-up: {ix.followupDueDate ? formatDate(ix.followupDueDate) : 'Due'}
                                   </span>
                                 )}
                               </div>
                               {ix.sharedNotes ? (
-                                <p className="mt-1.5 text-xs text-muted-foreground bg-muted rounded px-2 py-1 border border-border">
+                                <p className="mt-1.5 text-sm text-muted-foreground bg-muted rounded px-2 py-1 border border-border">
                                   {ix.sharedNotes}
                                 </p>
                               ) : (
-                                <p className="mt-1.5 text-xs flex items-center gap-1">
+                                <p className="mt-1.5 text-sm flex items-center gap-3">
                                   <MissingBadge label="No Notes Recorded" />
                                 </p>
                               )}

@@ -107,7 +107,7 @@ export default function PartnerDetailsPage() {
         <div className="flex flex-col items-center justify-center py-20">
           <h2 className="text-2xl font-bold text-foreground mb-2">Partner Not Found</h2>
           <p className="text-muted-foreground mb-6">The partner you are looking for does not exist.</p>
-          <button onClick={() => router.push('/partners')} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+          <button onClick={() => router.push('/partners')} className="lmc-btn-inline px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-sm">
             Back to Partners
           </button>
         </div>
@@ -120,7 +120,7 @@ export default function PartnerDetailsPage() {
       <div className="lmc-page-inner max-w-6xl">
         <div className="flex flex-col items-center justify-center py-20">
           <p className="text-destructive font-semibold mb-6">{error}</p>
-          <button onClick={() => window.location.reload()} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+          <button onClick={() => window.location.reload()} className="lmc-btn-inline px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-sm">
             Retry
           </button>
         </div>
@@ -153,7 +153,7 @@ export default function PartnerDetailsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Leadership */}
         <div className="lmc-surface p-6 flex flex-col gap-3 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600" />
+          <div className="lmc-gradient-bar" />
           <h2 className="text-base md:text-lg font-bold text-foreground flex items-center gap-2">
             Leadership
           </h2>
@@ -168,7 +168,7 @@ export default function PartnerDetailsPage() {
         </div>
         {/* Primary */}
         <div className="lmc-surface p-6 flex flex-col gap-3 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-emerald-600" />
+          <div className="lmc-gradient-bar" />
           <h2 className="text-base md:text-lg font-bold text-foreground flex items-center gap-2">
             Primary
           </h2>
@@ -182,7 +182,7 @@ export default function PartnerDetailsPage() {
               </div>
               <a
                 href={`mailto:${c.email}`}
-                className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="lmc-action-btn"
                 title="Quick Email"
               >
                 <Mail size={16} />
@@ -192,7 +192,7 @@ export default function PartnerDetailsPage() {
         </div>
         {/* Secondary */}
         <div className="lmc-surface p-6 flex flex-col gap-3 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-slate-400 to-slate-500" />
+          <div className="lmc-gradient-bar" />
           <h2 className="text-base md:text-lg font-bold text-foreground flex items-center gap-2">
             Secondary
           </h2>
@@ -209,7 +209,7 @@ export default function PartnerDetailsPage() {
       {/* Sidebar Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <div className="md:col-start-3 lmc-surface p-6 flex flex-col gap-4 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
+          <div className="lmc-gradient-bar" />
           <h2 className="text-base md:text-lg font-bold text-foreground">Partnership Status</h2>
           <div className="flex flex-col gap-3 text-sm">
             <div className="flex items-center justify-between py-2 border-b border-border/50">
@@ -227,9 +227,9 @@ export default function PartnerDetailsPage() {
             <div className="flex items-center justify-between py-2 border-b border-border/50">
               <span className="text-muted-foreground font-medium">Early Release</span>
               {partner.earlyReleaseForSeniors ? (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Eligible</span>
+                <span className="lmc-status-badge lmc-status-badge--eligible">Eligible</span>
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">Not Eligible</span>
+                <span className="lmc-status-badge lmc-status-badge--ineligible">Not Eligible</span>
               )}
             </div>
             <div className="pt-1">

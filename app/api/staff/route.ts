@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
         fullName: true,
         email: true,
         role: true,
-        title: true,
       },
       orderBy: { fullName: 'asc' },
     });
@@ -33,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Access restricted to administrators' }, { status: 403 });
     }
 
-    const { fullName, email, role, title, password } = await req.json();
+    const { fullName, email, role, password } = await req.json();
     if (!fullName || !email || !password) {
       return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 });
     }
@@ -45,8 +44,8 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const staff = await prisma.user.create({
-      data: { fullName, email, passwordHash: hashedPassword, role: role || 'STAFF_USER', title: title || '' },
-      select: { id: true, fullName: true, email: true, role: true, title: true },
+      data: { fullName, email, passwordHash: hashedPassword, role: role || 'STAFF_USER' },
+      select: { id: true, fullName: true, email: true, role: true },
     });
 
     try {

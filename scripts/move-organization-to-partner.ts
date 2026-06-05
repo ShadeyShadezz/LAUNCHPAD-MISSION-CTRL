@@ -12,7 +12,6 @@ async function ensureFallbackUserId(): Promise<string> {
       passwordHash: 'migrated-account',
       fullName: 'Migration Admin',
       role: 'ADMINISTRATOR',
-      title: 'Migration System User',
       accessLevel: 'admin',
     },
     select: { id: true },

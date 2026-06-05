@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
-import Link from 'next/link';
 import clsx from 'clsx';
 import { AlertCircle, Mail, Users, TrendingUp, ClipboardList, Shield } from 'lucide-react';
+import { buttonVariants } from '@/app/components/Button';
 
 interface RecentOrganization {
   id: string;
@@ -94,94 +94,100 @@ export default function Dashboard() {
     { label: 'Pending', value: pendingCount, icon: <ClipboardList size={16} />, color: 'accent' },
   ];
 
+  const quickActionButtonClass =
+    'lmc-quick-action-btn inline-flex w-fit items-center justify-center gap-2 rounded-md bg-[#047857] px-2.5 py-1.5 text-xs font-semibold uppercase leading-none transition-colors hover:bg-[#036b4f]';
+
   return (
     <div className="lmc-page">
       <div className="lmc-page-accent" />
       <main className="lmc-page-inner max-w-7xl">
-        <div className="lmc-page-header">
-          <div className="flex flex-row items-baseline gap-4 flex-wrap">
-            <h1 className="lmc-page-title shrink-0">Mission Control Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Overview of partner performance, actions, and outreach priorities.</p>
+        <div className="lmc-page-header gap-3">
+          <span className="lmc-kicker">Partner Operations</span>
+          <div>
+            <h1 className="lmc-page-title">Mission Control Dashboard</h1>
+            <p className="lmc-page-subtitle">Overview of partner performance, actions, and outreach priorities.</p>
           </div>
         </div>
 
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="lmc-surface lmc-surface--interactive p-6">
-            <h3 className="text-base md:text-lg font-bold text-foreground mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {quickActions.map((action) => {
-                const Icon = action.icon;
-                return (
-                  <Link
-                    key={action.label}
-                    href={action.href}
-                    className="group flex flex-col items-center p-3 bg-muted/40 rounded-lg border border-border/60 transition-all hover:bg-muted hover:shadow-sm"
-                  >
-                    <div className={clsx(
-                      'w-6 h-6 rounded-lg flex items-center justify-center mb-2 transition-transform group-hover:scale-110',
-                      action.color === 'primary' ? 'bg-primary/10 text-primary' :
-                      action.color === 'accent' ? 'bg-accent/10 text-accent' :
-                      action.color === 'success' ? 'bg-success/10 text-success' :
-                      'bg-warning/10 text-warning'
-                    )}>
-                      <Icon size={14} />
-                    </div>
-                    <h4 className="text-sm font-semibold text-foreground text-center">{action.label}</h4>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 border-t border-border pt-4">
-              <h4 className="text-sm md:text-base font-bold text-foreground mb-3">Recent Organizations</h4>
-              {recentOrganizations.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No active partner records available.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {recentOrganizations.map((org) => (
-                    <li key={org.id} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">{org.name || 'No Organization Assigned'}</p>
-                        <p className="text-xs text-muted-foreground">Tier: {org.tier || 'Tier Not Set'}</p>
-                      </div>
-                      <Link
-                        href={`/partnerships/${org.orgId || org.id}`}
-                        className="text-xs font-semibold text-primary hover:underline"
-                      >
-                        Profile
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+        <section className="lmc-panel p-5 md:p-6">
+          <div className="lmc-toolbar mb-4">
+            <h3 className="text-base md:text-lg font-bold text-white">Quick Actions</h3>
+            <button type="button" onClick={() => router.push('/interactions/new')} className={quickActionButtonClass}>
+              <ClipboardList size={14} />
+              Log New Interaction
+            </button>
           </div>
 
-          <div className="lmc-surface lmc-surface--interactive p-6">
-            <div className="flex items-center gap-4 mb-4">
+          <div className="lmc-actions-grid">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  type="button"
+                  key={action.label}
+                  onClick={() => router.push(action.href)}
+                  className={quickActionButtonClass}
+                >
+                  <Icon size={13} />
+                  {action.label}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[1.25fr_1fr] gap-6">
+          <section className="lmc-panel p-5 md:p-6">
+            <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+              <h4 className="text-sm md:text-base font-bold text-foreground">Recent Organizations</h4>
+              <button type="button" onClick={() => router.push('/partners')} className={clsx(buttonVariants({ size: 'sm' }))}>View all</button>
+            </div>
+
+            {recentOrganizations.length === 0 ? (
+              <p className="text-xs text-muted-foreground pt-4">No active partner records available.</p>
+            ) : (
+              <ul className="space-y-2 pt-4">
+                {recentOrganizations.map((org) => (
+                  <li key={org.id} className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2.5 gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">{org.name || 'No Organization Assigned'}</p>
+                      <p className="text-xs text-muted-foreground">Tier: {org.tier || 'Tier Not Set'}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/partnerships/${org.orgId || org.id}`)}
+                      className={clsx(buttonVariants({ size: 'sm' }), 'whitespace-nowrap')}
+                    >
+                      Profile
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="lmc-panel p-5 md:p-6">
+            <div className="flex items-center gap-3 mb-4">
               <div className="p-2.5 rounded-lg bg-accent/10 text-accent">
-                <AlertCircle size={20} />
+                <AlertCircle size={18} />
               </div>
               <h3 className="text-base md:text-lg font-bold text-foreground">Daily Reminder</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-              Prioritize partner communication and review partnership statuses.
+              Prioritize partner communication and review partnership statuses before end-of-day updates.
             </p>
-            <Link
-              href="/email"
-              className="inline-flex items-center gap-3 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-primary/20"
-            >
-              <Mail size={16} />
+            <button type="button" onClick={() => router.push('/email')} className={clsx(buttonVariants({ size: 'md' }))}>
+              <Mail size={15} />
               Check Email
-            </Link>
-          </div>
+            </button>
+          </section>
         </div>
 
-        <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <section className="lmc-stat-grid">
           {stats.map((s) => (
-            <div key={s.label} className="lmc-surface lmc-surface--interactive p-6 flex flex-col items-center justify-center text-center min-h-[130px]">
+            <article key={s.label} className="lmc-stat-card">
               <div className={clsx(
-                'p-2 rounded-lg mb-3',
+                'mx-auto p-2 rounded-lg w-fit',
                 s.color === 'primary' ? 'text-primary bg-primary/10' :
                 s.color === 'success' ? 'text-success bg-success/10' :
                 s.color === 'accent' ? 'text-accent bg-accent/10' : 'text-warning bg-warning/10'
@@ -189,10 +195,10 @@ export default function Dashboard() {
                 {s.icon}
               </div>
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">{s.label}</p>
-              <p className={clsx('text-3xl font-bold mt-1.5 leading-none', s.color === 'primary' ? 'text-primary' : s.color === 'success' ? 'text-success' : s.color === 'accent' ? 'text-accent' : 'text-warning')}>{s.value}</p>
-            </div>
+              <p className={clsx('text-3xl font-bold leading-none', s.color === 'primary' ? 'text-primary' : s.color === 'success' ? 'text-success' : s.color === 'accent' ? 'text-accent' : 'text-warning')}>{s.value}</p>
+            </article>
           ))}
-        </div>
+        </section>
       </main>
     </div>
   );

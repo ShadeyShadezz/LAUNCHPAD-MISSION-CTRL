@@ -62,6 +62,7 @@ const AdminPage = () => {
       <div className="lmc-page-inner max-w-7xl">
         {/* Header */}
         <div className="lmc-page-header">
+          <span className="lmc-kicker">System Oversight</span>
           <div>
             <h1 className="lmc-page-title">Admin Controls</h1>
             <p className="lmc-page-subtitle">Monitor system activity and manage logs.</p>
@@ -73,7 +74,8 @@ const AdminPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div className="lmc-panel p-4 md:p-5">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-7 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input
@@ -97,6 +99,7 @@ const AdminPage = () => {
               <option value="DELETED">Deleted</option>
               <option value="LOGGED IN">Logged In</option>
             </select>
+          </div>
           </div>
         </div>
 
@@ -162,10 +165,10 @@ const AdminPage = () => {
             Showing <span className="font-semibold text-foreground">1–{filteredLogs.length}</span> of <span className="font-semibold text-foreground">{activityLogs.length}</span> entries
           </p>
           <div className="flex items-center gap-2">
-            <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-muted hover:border-primary/30 transition-colors cursor-pointer">
+            <button type="button" className="lmc-btn-inline gap-2 px-4 py-2.5 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-muted hover:border-primary/30">
               <ChevronLeft size={16} /> Previous
             </button>
-            <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-muted hover:border-primary/30 transition-colors cursor-pointer">
+            <button type="button" className="lmc-btn-inline gap-2 px-4 py-2.5 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-muted hover:border-primary/30">
               Next <ChevronRight size={16} />
             </button>
           </div>

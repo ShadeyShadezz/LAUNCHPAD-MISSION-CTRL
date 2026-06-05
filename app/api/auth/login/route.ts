@@ -34,7 +34,6 @@ export async function POST(req: Request) {
         passwordHash: true,
         role: true,
         fullName: true,
-        title: true,
         accessLevel: true,
         createdAt: true,
         lastLogin: true,

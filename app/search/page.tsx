@@ -114,7 +114,7 @@ export default function SearchPage() {
       <div className="lmc-page-accent" />
       <main className="lmc-page-inner max-w-7xl">
         {dbError && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive font-semibold">
+          <div className="lmc-banner lmc-banner--error">
             {dbError} <button className="ml-2 underline" onClick={() => window.location.reload()}>Retry</button>
           </div>
         )}
@@ -175,7 +175,7 @@ export default function SearchPage() {
                     </div>
                     <Link
                       href={`/partnerships/${partnership.id}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-3.5 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors shrink-0"
+                      className="lmc-btn-outline-brand gap-1 px-3.5 py-2 text-sm font-semibold shrink-0"
                     >
                       Details
                     </Link>

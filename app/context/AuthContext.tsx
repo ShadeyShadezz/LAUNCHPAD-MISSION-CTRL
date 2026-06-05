@@ -7,7 +7,6 @@ export interface User {
   email: string;
   fullName: string;
   role: string;
-  title?: string;
   accessLevel: string;
 }
 

@@ -37,7 +37,6 @@ export const config = {
   EMAIL_SENDER: process.env.EMAIL_SENDER || '',
 
   // Public-facing config
-  NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || '',
   NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
 
   // Server port (Express backend)
@@ -50,6 +49,4 @@ export const config = {
   JWT_EXPIRY: process.env.JWT_EXPIRATION || '7d',
   JWT_MAX_AGE_SECONDS: 60 * 60 * 24 * 7,
 
-  // API routes (client-side)
-  API_BASE: process.env.NEXT_PUBLIC_BACKEND_URL || '',
 } as const;

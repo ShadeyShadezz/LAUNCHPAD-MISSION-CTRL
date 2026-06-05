@@ -312,22 +312,24 @@ const EmailComposerPage = () => {
       <div className="lmc-page-accent" />
       <div className="lmc-page-inner max-w-5xl">
         {dbError && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-500 font-semibold">
-            {dbError} <button className="ml-2 underline" onClick={() => window.location.reload()}>Retry</button>
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive font-semibold">
+            {dbError} <button type="button" className="ml-2 underline" onClick={() => window.location.reload()}>Retry</button>
           </div>
         )}
         <div className="lmc-page-header">
+          <span className="lmc-kicker">Outreach Studio</span>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="lmc-page-title">Email Terminal</h1>
-              <p className="lmc-page-subtitle inline-flex items-center gap-2">
+              <p className="lmc-page-subtitle inline-flex items-center gap-3">
                 <Mail size={16} className="text-primary shrink-0" />
                 <span>Strategic Communication Interface</span>
               </p>
             </div>
             <button
+              type="button"
               onClick={handleClear}
-              className="px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-colors"
+              className="lmc-email-action-btn lmc-btn-inline px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground border border-border hover:bg-muted hover:text-foreground"
             >
               Clear Draft
             </button>
@@ -335,20 +337,20 @@ const EmailComposerPage = () => {
         </div>
         {message && (
           <div className={clsx(
-            'flex items-center gap-4 px-6 py-3.5 rounded-xl border text-sm font-bold tracking-wide shadow-sm',
+            'lmc-banner',
             message.type === 'success'
-              ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-              : 'bg-red-500/5 border-red-500/20 text-red-500',
+              ? 'lmc-banner--success'
+              : 'lmc-banner--error',
           )}>
             {message.type === 'success' ? <CheckCircle size={20} strokeWidth={3} /> : <AlertCircle size={20} strokeWidth={3} />}
             {message.text}
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-5">
         {/* 1. Partner Select */}
-        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
-          <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="partner-select">Target Partner</label>
+        <div className="rounded-xl bg-card border border-border p-5 md:p-6">
+          <label className="block pb-1 tracking-wide font-bold text-sm text-muted-foreground uppercase" htmlFor="partner-select">Target Partner</label>
           <select
             id="partner-select"
             name="organizationId"
@@ -360,7 +362,7 @@ const EmailComposerPage = () => {
               if (!value) setTo('');
             }}
             disabled={isDatabaseLoading || !!dbError || organizations.length === 0}
-            className="w-full min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            className="w-full min-h-[52px] rounded-xl border border-border bg-secondary text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           >
             {isDatabaseLoading ? (
               <option value="">Loading database records...</option>
@@ -380,22 +382,22 @@ const EmailComposerPage = () => {
             )}
           </select>
           {activeOrg && (
-            <p className="mt-1.5 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-sm text-muted-foreground">
               Primary Contact: {activeOrg.primaryContactName || 'N/A'}
             </p>
           )}
         </div>
 
         {/* 2. Contact Select */}
-        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
-          <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="recipient-select">Recipient</label>
+        <div className="rounded-xl bg-card border border-border p-5 md:p-6">
+          <label className="block pb-1 tracking-wide font-bold text-sm text-muted-foreground uppercase" htmlFor="recipient-select">Recipient</label>
           <select
             id="recipient-select"
             name="recipientEmail"
             value={selectedRecipient}
             onChange={(e) => handleRecipientSelect(e.target.value)}
             disabled={isDatabaseLoading || !!dbError || !selectedOrgId}
-            className="w-full min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            className="w-full min-h-[52px] rounded-xl border border-border bg-secondary text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           >
             {isDatabaseLoading ? (
               <option value="">Loading database records...</option>
@@ -419,16 +421,16 @@ const EmailComposerPage = () => {
         </div>
 
         {/* 3. Subject Line + Purpose */}
-        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
+        <div className="rounded-xl bg-card border border-border p-5 md:p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="email-purpose-select">Email Purpose</label>
+              <label className="block pb-1 tracking-wide font-bold text-sm text-muted-foreground uppercase" htmlFor="email-purpose-select">Email Purpose</label>
               <select
                 id="email-purpose-select"
                 name="emailPurpose"
                 value={emailPurpose}
                 onChange={(e) => setEmailPurpose(e.target.value)}
-                className="w-full min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full min-h-[52px] rounded-xl border border-border bg-secondary text-foreground px-4 text-sm font-medium appearance-none cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="Check-in">Check-in</option>
                 <option value="Quarterly Planning">Quarterly Planning</option>
@@ -437,7 +439,7 @@ const EmailComposerPage = () => {
               </select>
             </div>
             <div>
-              <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="subject-input">Subject</label>
+              <label className="block pb-1 tracking-wide font-bold text-sm text-muted-foreground uppercase" htmlFor="subject-input">Subject</label>
               <input
                 id="subject-input"
                 name="subject"
@@ -445,30 +447,28 @@ const EmailComposerPage = () => {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="STRATEGIC FOLLOW-UP..."
-                className="w-full min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
+                className="w-full min-h-[52px] rounded-xl border border-border bg-secondary text-foreground px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
               />
             </div>
           </div>
         </div>
 
         {/* 4. Tone Selector */}
-        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
-          <label className="block pb-2 tracking-wide font-bold text-xs text-muted-foreground uppercase">Tone</label>
-          <div className="flex flex-row flex-wrap gap-2">
+        <div className="rounded-xl bg-card border border-border p-5 md:p-6">
+          <label className="block pb-2 tracking-wide font-bold text-sm text-muted-foreground uppercase">Tone</label>
+          <div className="flex flex-row flex-wrap gap-3">
             {['professional', 'formal', 'casual', 'enthusiastic'].map((t) => (
               <button
                 key={t}
                 type="button"
                 className={clsx(
-                  'px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest border transition-all duration-200 cursor-pointer',
+                  'lmc-tone-pill',
                   tone === t
-                    ? 'bg-primary/20 text-primary border-primary/40 shadow-[0_0_12px_rgba(16,185,129,0.3)] dark:shadow-[0_0_12px_rgba(52,211,153,0.25)]'
-                    : 'bg-card text-foreground border-border hover:bg-muted',
-                  'focus:outline-none focus:ring-2 focus:ring-primary/20'
+                    ? 'lmc-tone-pill--active'
+                    : 'lmc-tone-pill--inactive',
                 )}
                 onClick={() => setTone(t)}
                 disabled={isGenerating}
-                style={{ minWidth: 140 }}
               >
                 {t === 'professional' && 'WARM & PROFESSIONAL'}
                 {t === 'formal' && 'STRICT & FORMAL'}
@@ -480,9 +480,9 @@ const EmailComposerPage = () => {
         </div>
 
         {/* 5. AI Prompt & Generate */}
-        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
-          <label className="block pb-1 tracking-wide font-bold text-xs text-muted-foreground uppercase" htmlFor="ai-prompt-input">AI Mission Objectives</label>
-          <div className="flex flex-row gap-2">
+        <div className="rounded-xl bg-card border border-border p-5 md:p-6">
+          <label className="block pb-1 tracking-wide font-bold text-sm text-muted-foreground uppercase" htmlFor="ai-prompt-input">AI Mission Objectives</label>
+          <div className="flex flex-row gap-3">
             <input
               id="ai-prompt-input"
               name="customInstructions"
@@ -490,30 +490,31 @@ const EmailComposerPage = () => {
               value={customInstructions}
               onChange={(e) => setCustomInstructions(e.target.value)}
               placeholder="E.G., FOLLOW UP ON INFOSESSION, PROPOSE NEXT MEETING..."
-              className="flex-1 min-h-[52px] rounded-xl border border-border bg-card text-foreground px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
+              className="flex-1 min-h-[52px] rounded-xl border border-border bg-secondary text-foreground px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground"
             />
             <button
+              type="button"
               onClick={handleGenerateAIEmail}
               disabled={isGenerating || !activeOrg}
-              className="px-6 min-h-[52px] rounded-xl bg-primary text-primary-foreground text-sm font-bold uppercase tracking-widest shadow-sm hover:bg-primary/90 transition-all duration-200 disabled:opacity-50 cursor-pointer shrink-0"
+              className="lmc-email-action-btn lmc-btn-inline px-6 min-h-[52px] rounded-xl bg-primary text-primary-foreground text-sm font-bold uppercase tracking-widest shadow-sm hover:bg-primary/90 disabled:opacity-50 shrink-0"
             >
               {isGenerating ? (
-                <span className="flex items-center gap-2"><div className="spinner-ring-sm" /> Generating</span>
+                <span className="flex items-center gap-3"><div className="spinner-ring-sm" /> Generating</span>
               ) : (
                 'Generate'
               )}
             </button>
           </div>
           {isGenerating && (
-            <p className="mt-1.5 text-xs text-muted-foreground font-semibold">
+            <p className="mt-1.5 text-sm text-muted-foreground font-semibold">
               AI is crafting your communication node...
             </p>
           )}
         </div>
 
         {/* 6. Editable Email Body */}
-        <div className="rounded-xl bg-card border border-border p-4 md:p-5">
-          <label htmlFor="email-body-textarea" className="block pb-2 tracking-wide font-bold text-xs text-muted-foreground uppercase">Editable Email Body</label>
+        <div className="rounded-xl bg-card border border-border p-5 md:p-6">
+          <label htmlFor="email-body-textarea" className="block pb-2 tracking-wide font-bold text-sm text-muted-foreground uppercase">Editable Email Body</label>
           <div className="relative">
             <textarea
               id="email-body-textarea"
@@ -522,7 +523,7 @@ const EmailComposerPage = () => {
               onChange={e => setGeneratedEmail(e.target.value)}
               aria-label="Editable Email Body"
               placeholder="AI-generated email will appear here. You can edit before sending."
-              className="w-full min-h-[220px] rounded-xl border border-border bg-card text-foreground p-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-vertical shadow-sm placeholder:text-muted-foreground"
+              className="w-full min-h-[220px] rounded-xl border border-border bg-secondary text-foreground p-4 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-vertical shadow-sm placeholder:text-muted-foreground"
               disabled={isGenerating}
             />
             {isGenerating && (
@@ -533,30 +534,33 @@ const EmailComposerPage = () => {
                   <div className="h-4 w-2/3 rounded bg-muted" />
                   <div className="h-4 w-4/5 rounded bg-muted" />
                 </div>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Generating draft...</p>
+                <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Generating draft...</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="flex flex-row gap-3 pt-2">
+      <div className="flex flex-row gap-4 pt-4">
         <button
-          className="flex-[2] min-h-[52px] rounded-xl bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-primary/90 transition-all duration-200 disabled:opacity-50 cursor-pointer"
+          type="button"
+          className="lmc-email-action-btn lmc-btn-inline flex-[2] min-h-[52px] rounded-xl bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-primary/90 disabled:opacity-50"
           onClick={handleSendEmail}
           disabled={loading || isPending}
         >
           {loading || isPending ? 'Sending...' : 'Send Email'}
         </button>
         <button
-          className="flex-1 min-h-[52px] rounded-xl border border-border text-foreground font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-muted transition-all duration-200 cursor-pointer"
+          type="button"
+          className="lmc-email-action-btn lmc-email-action-btn--neutral lmc-btn-inline flex-1 min-h-[52px] rounded-xl border border-border text-foreground font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-muted"
           onClick={handleCopy}
           disabled={!generatedEmail}
         >
           Copy
         </button>
         <button
-          className="flex-1 min-h-[52px] rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-amber-500/10 transition-all duration-200 cursor-pointer"
+          type="button"
+          className="lmc-email-action-btn lmc-email-action-btn--neutral lmc-btn-inline flex-1 min-h-[52px] rounded-xl border border-brand-500/30 text-brand-700 dark:text-brand-400 font-bold text-sm uppercase tracking-widest shadow-sm hover:bg-brand-500/10"
           onClick={() => setShowPreview((p) => !p)}
         >
           {showPreview ? 'Hide Preview' : 'Preview'}
@@ -567,7 +571,7 @@ const EmailComposerPage = () => {
       {showPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-card border border-border rounded-2xl p-10 shadow-xl max-w-lg w-full mx-4 flex flex-col gap-5 relative items-center">
-            <button className="absolute top-4 right-4 text-red-500 font-bold text-2xl leading-none hover:text-red-400 transition-colors" onClick={() => setShowPreview(false)}>&times;</button>
+            <button type="button" className="lmc-close-btn" onClick={() => setShowPreview(false)}>&times;</button>
             <h3 className="text-xl font-extrabold text-foreground tracking-tight">Email Preview</h3>
             <div className="text-sm text-muted-foreground">To: <span className="text-foreground font-semibold">{to || 'NO TARGET SPECIFIED'}</span></div>
             <div className="text-sm text-muted-foreground">Subject: <span className="text-primary italic uppercase font-semibold">{subject || 'UNSPECIFIED MISSION'}</span></div>

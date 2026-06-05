@@ -13,15 +13,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!existing) {
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
     }
-    const { fullName, role, title } = await req.json();
+    const { fullName, role } = await req.json();
     const updated = await prisma.user.update({
       where: { id },
       data: {
         ...(fullName !== undefined && { fullName }),
         ...(role !== undefined && { role }),
-        ...(title !== undefined && { title }),
       },
-      select: { id: true, fullName: true, email: true, role: true, title: true },
+      select: { id: true, fullName: true, email: true, role: true },
     });
 
     try {
@@ -32,7 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           targetType: 'Staff',
           targetId: updated.id,
           targetName: updated.fullName,
-          additionalInfo: `Updated staff: ${fullName ? `name=${fullName}, ` : ''}${role ? `role=${role}, ` : ''}${title ? `title=${title}` : ''}`.replace(/,\s*$/, ''),
+          additionalInfo: `Updated staff: ${fullName ? `name=${fullName}, ` : ''}${role ? `role=${role}` : ''}`.replace(/,\s*$/, ''),
         },
       });
     } catch {

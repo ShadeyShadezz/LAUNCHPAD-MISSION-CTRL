@@ -5,18 +5,18 @@ import { useState } from "react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const isAuthSurface = pathname === "/login" || pathname.startsWith("/auth/");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (isLoginPage) {
+  if (isAuthSurface) {
     return <>{children}</>;
   }
 
   return (
-    <div className="flex-1 h-full flex overflow-hidden">
+    <div className="relative min-h-screen w-full lg:flex">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <SidebarTrigger onClick={() => setSidebarOpen(true)} visible={!sidebarOpen} />
-      <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
+      <div className="min-w-0 flex-1 px-3 pb-3 pt-20 sm:px-4 lg:p-4 lg:pt-4">
         {children}
       </div>
     </div>

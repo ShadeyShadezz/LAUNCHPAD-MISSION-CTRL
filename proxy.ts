@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { config as env } from '@/app/lib/config';
-
-const JWT_SECRET = env.JWT_SECRET;
 
 /**
  * Verify JWT from cookies or Authorization header.
  * Returns decoded payload or null.
  */
 export function verifyRequestToken(request: NextRequest) {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) return null;
+
   const token =
     request.cookies.get('token')?.value ||
     request.cookies.get('authToken')?.value ||
@@ -17,7 +17,7 @@ export function verifyRequestToken(request: NextRequest) {
   if (!token) return null;
 
   try {
-    return jwt.verify(token, JWT_SECRET) as { id: string; email: string; role: string };
+    return jwt.verify(token, jwtSecret) as { id: string; email: string; role: string };
   } catch {
     return null;
   }
@@ -28,6 +28,7 @@ export function verifyRequestToken(request: NextRequest) {
  */
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const hasJwtSecret = Boolean(process.env.JWT_SECRET);
   const payload = verifyRequestToken(request);
 
   // Public routes — always allow
@@ -54,6 +55,9 @@ export default function proxy(request: NextRequest) {
   if (!payload) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
+    if (!hasJwtSecret) {
+      loginUrl.searchParams.set('error', 'server_config');
+    }
     return NextResponse.redirect(loginUrl);
   }
 

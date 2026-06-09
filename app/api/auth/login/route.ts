@@ -14,10 +14,9 @@ async function logActivity(userId: string, action: string, targetType: string, t
   }
 }
 
-const JWT_SECRET = config.JWT_SECRET;
-
 export async function POST(req: Request) {
   try {
+    const jwtSecret = config.JWT_SECRET;
     const body = await req.json().catch(() => null);
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
     const password = typeof body?.password === 'string' ? body.password : '';
@@ -54,7 +53,7 @@ export async function POST(req: Request) {
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
+      jwtSecret,
       { expiresIn: config.JWT_MAX_AGE_SECONDS }
     );
 
@@ -75,7 +74,23 @@ export async function POST(req: Request) {
     });
     return response;
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown authentication error';
     console.error('Authentication route failed:', error);
+
+    if (message.includes('Missing required environment variable: JWT_SECRET')) {
+      return NextResponse.json(
+        { error: 'Server auth is not configured. Set JWT_SECRET in Vercel environment variables.' },
+        { status: 500 }
+      );
+    }
+
+    if (/P1000|P1001|P1002|P1008|database|prisma/i.test(message)) {
+      return NextResponse.json(
+        { error: 'Database connection failed. Verify DATABASE_URL in Vercel environment variables.' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 });
   }
 }

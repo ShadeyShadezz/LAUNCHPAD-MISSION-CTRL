@@ -34,7 +34,7 @@ export const config = {
   GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN || '',
 
   // Email sender
-  EMAIL_SENDER: process.env.EMAIL_SENDER || '',
+  EMAIL_SENDER: process.env.EMAIL_SENDER || process.env.EMAIL_FROM || '',
 
   // Public-facing config
   NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',

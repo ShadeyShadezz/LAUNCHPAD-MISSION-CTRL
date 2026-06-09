@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Shield, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 
@@ -12,10 +12,18 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { login, user, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const paramError = searchParams.get('error');
+    if (paramError === 'server_config') {
+      setError('Server auth configuration is missing. Set JWT_SECRET in Vercel environment variables.');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isLoading && user) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [user, isLoading, router]);
 

@@ -7,7 +7,9 @@ export interface JwtPayload {
   role: string;
 }
 
-const JWT_SECRET = config.JWT_SECRET;
+function getJwtSecret(): string {
+  return config.JWT_SECRET;
+}
 
 function getCookie(request: Request, name: string): string | undefined {
   const cookieHeader = request.headers.get('cookie');
@@ -28,7 +30,7 @@ export function verifyAuth(request: Request): JwtPayload {
   if (!token) throw new Error('No token provided');
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, getJwtSecret()) as JwtPayload;
     return decoded;
   } catch {
     throw new Error('Invalid token');
@@ -36,5 +38,5 @@ export function verifyAuth(request: Request): JwtPayload {
 }
 
 export function generateToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: config.JWT_MAX_AGE_SECONDS });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: config.JWT_MAX_AGE_SECONDS });
 }

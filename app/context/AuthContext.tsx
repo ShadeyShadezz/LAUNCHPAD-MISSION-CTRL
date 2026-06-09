@@ -27,18 +27,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const validateAndRestoreSession = useCallback(async () => {
     const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('authToken');
-    if (!storedUser || !storedToken) {
-      setIsLoading(false);
-      return;
-    }
+
     try {
-      const parsed = JSON.parse(storedUser) as User;
-      setUser(parsed);
-    } catch {
+      const response = await fetch('/api/auth/session', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.user) {
+          setUser(data.user as User);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          setIsLoading(false);
+          return;
+        }
+      }
+
       localStorage.removeItem('user');
       localStorage.removeItem('authToken');
+      setUser(null);
+    } catch {
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser) as User;
+          setUser(parsed);
+        } catch {
+          localStorage.removeItem('user');
+          localStorage.removeItem('authToken');
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
     }
+
     setIsLoading(false);
   }, []);
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/app/lib/db';
 import { config } from '@/app/lib/config';
 
@@ -84,11 +85,20 @@ export async function POST(req: Request) {
       );
     }
 
-    if (/P1000|P1001|P1002|P1008|database|prisma/i.test(message)) {
+    if (error instanceof Prisma.PrismaClientInitializationError || /P1000|P1001|P1002|P1008|Can't reach database/i.test(message)) {
       return NextResponse.json(
         { error: 'Database connection failed. Verify DATABASE_URL in Vercel environment variables.' },
         { status: 500 }
       );
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2021' || error.code === 'P2022') {
+        return NextResponse.json(
+          { error: 'Database schema is out of sync with the app. Run `prisma migrate deploy` in your Vercel build.' },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 });

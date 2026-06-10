@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-10 bg-background">
       {/* Animated background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl" />
@@ -51,9 +51,9 @@ export default function LoginPage() {
       </div>
 
       {/* Login Card */}
-      <div className="relative z-10 max-w-md w-full">
+      <div className="relative z-10 w-full max-w-[430px]">
         <div className="lmc-surface overflow-hidden">
-          <div className="p-10 space-y-8">
+          <div className="px-6 py-8 sm:px-8 sm:py-9 space-y-7">
             {/* Header */}
             <div className="text-center space-y-3">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-primary/10">
@@ -82,7 +82,7 @@ export default function LoginPage() {
 
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               {/* Email Field */}
               <div className="space-y-2">
                 <label htmlFor="login-email" className="text-xs font-medium text-muted-foreground">
@@ -96,7 +96,7 @@ export default function LoginPage() {
                     placeholder="test@launchpad.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="lmc-input pl-12 pr-4 py-2.5 text-sm placeholder:text-muted-foreground/50"
+                    className="lmc-input h-11 pl-12 pr-4 text-sm placeholder:text-muted-foreground/50"
                     required
                   />
                 </div>
@@ -115,7 +115,7 @@ export default function LoginPage() {
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="lmc-input pl-12 pr-4 py-2.5 text-sm placeholder:text-muted-foreground/50"
+                    className="lmc-input h-11 pl-12 pr-4 text-sm placeholder:text-muted-foreground/50"
                     required
                   />
                 </div>
@@ -125,7 +125,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !email || !password}
-                className="w-full h-10 px-4 rounded-lg font-semibold text-primary-foreground bg-primary shadow-sm hover:shadow hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-[0.99] lmc-btn-inline gap-2 text-sm"
+                className="w-full h-11 px-4 rounded-lg font-semibold text-primary-foreground bg-primary shadow-sm hover:shadow hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-[0.99] lmc-btn-inline gap-2 text-sm"
               >
                 {loading ? (
                   <>
@@ -151,7 +151,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer Note */}
-        <p className="text-center text-xs mt-10 font-semibold text-muted-foreground">
+        <p className="text-center text-xs mt-6 font-semibold text-muted-foreground">
           Secure authentication gateway. Authorized personnel only.
         </p>
       </div>

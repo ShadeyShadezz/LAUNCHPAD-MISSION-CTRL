@@ -75,6 +75,10 @@ export const config = {
     '/settings/:path*',
     '/search/:path*',
     '/admin/:path*',
+    '/staff',
+    '/staff/:path*',
+    '/staff-notes',
+    '/staff-notes/:path*',
     '/login',
   ],
 };

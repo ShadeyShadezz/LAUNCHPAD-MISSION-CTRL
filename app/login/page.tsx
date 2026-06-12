@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Shield, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
+import { Button } from '@/app/components/Button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -52,8 +53,8 @@ export default function LoginPage() {
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-[430px]">
-        <div className="lmc-surface overflow-hidden">
-          <div className="px-6 py-8 sm:px-8 sm:py-9 space-y-7">
+        <div className="ui-card overflow-hidden">
+          <div className="px-6 py-8 sm:px-8 sm:py-9 ui-stack-lg">
             {/* Header */}
             <div className="text-center space-y-3">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-primary/10">
@@ -82,10 +83,10 @@ export default function LoginPage() {
 
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <form onSubmit={handleSubmit} className="ui-stack-md">
               {/* Email Field */}
-              <div className="space-y-2">
-                <label htmlFor="login-email" className="text-xs font-medium text-muted-foreground">
+              <div className="ui-field">
+                <label htmlFor="login-email" className="ui-label">
                   Email Address
                 </label>
                 <div className="relative group">
@@ -96,15 +97,15 @@ export default function LoginPage() {
                     placeholder="test@launchpad.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="lmc-input h-11 pl-12 pr-4 text-sm placeholder:text-muted-foreground/50"
+                    className="ui-input pl-12 pr-4"
                     required
                   />
                 </div>
               </div>
 
               {/* Password Field */}
-              <div className="space-y-2">
-                <label htmlFor="login-password" className="text-xs font-medium text-muted-foreground">
+              <div className="ui-field">
+                <label htmlFor="login-password" className="ui-label">
                   Password
                 </label>
                 <div className="relative group">
@@ -115,17 +116,19 @@ export default function LoginPage() {
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="lmc-input h-11 pl-12 pr-4 text-sm placeholder:text-muted-foreground/50"
+                    className="ui-input pl-12 pr-4"
                     required
                   />
                 </div>
               </div>
 
               {/* Submit Button */}
-              <button
+              <Button
                 type="submit"
                 disabled={loading || !email || !password}
-                className="w-full h-11 px-4 rounded-lg font-semibold text-primary-foreground bg-primary shadow-sm hover:shadow hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-[0.99] lmc-btn-inline gap-2 text-sm"
+                fullWidth
+                size="lg"
+                className="mt-1"
               >
                 {loading ? (
                   <>
@@ -138,7 +141,7 @@ export default function LoginPage() {
                     <ArrowRight size={20} strokeWidth={3} />
                   </>
                 )}
-              </button>
+              </Button>
             </form>
 
             {/* Divider */}

@@ -1,26 +1,43 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Shield, Mail, FileText, Settings, LogOut,
-  StickyNote, Building2, ListChecks, ChevronLeft, Rocket, Users,
+  StickyNote, Building2, ListChecks, Users,
   PanelLeftClose, PanelLeft
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/app/context/AuthContext';
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/partners', label: 'Partners', icon: Building2 },
-  { href: '/partnerships', label: 'Display', icon: Shield },
-  { href: '/email', label: 'Email', icon: Mail },
-  { href: '/interactions', label: 'Interactions', icon: ListChecks },
-  { href: '/staff-notes', label: 'Staff Notes', icon: StickyNote },
-  { href: '/staff', label: 'Staff Members', icon: Users },
-  { href: '/activity-log', label: 'Activity Log', icon: FileText },
-  { href: '/settings', label: 'Settings', icon: Settings },
+const navGroups = [
+  {
+    label: 'Command',
+    items: [
+      { href: '/dashboard', label: 'Overview', description: 'Workspace pulse', icon: LayoutDashboard },
+      { href: '/search', label: 'Global Search', description: 'Find records fast', icon: FileText },
+    ],
+  },
+  {
+    label: 'Relationships',
+    items: [
+      { href: '/partners', label: 'Partner Directory', description: 'Organizations', icon: Building2 },
+      { href: '/partnerships', label: 'Partnership Display', description: 'Public profiles', icon: Shield },
+      { href: '/interactions', label: 'Interactions', description: 'Outreach history', icon: ListChecks },
+      { href: '/email', label: 'Email Studio', description: 'Partner outreach', icon: Mail },
+    ],
+  },
+  {
+    label: 'Workspace',
+    items: [
+      { href: '/staff-notes', label: 'Staff Notes', description: 'Shared context', icon: StickyNote },
+      { href: '/staff', label: 'Team Access', description: 'Members & roles', icon: Users },
+      { href: '/activity-log', label: 'Audit Log', description: 'System events', icon: FileText },
+      { href: '/settings', label: 'Settings', description: 'Preferences', icon: Settings },
+    ],
+  },
 ];
 
 export function SidebarOverlay({ sidebarOpen, onClose }: { sidebarOpen: boolean; onClose: () => void }) {
@@ -35,7 +52,17 @@ export function SidebarOverlay({ sidebarOpen, onClose }: { sidebarOpen: boolean;
   );
 }
 
-export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export default function Sidebar({
+  isOpen,
+  onClose,
+  desktopClosed = false,
+  onCloseDesktop,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  desktopClosed?: boolean;
+  onCloseDesktop?: () => void;
+}) {
   const pathname = usePathname();
   const { logout, user } = useAuth();
   const router = useRouter();
@@ -86,55 +113,75 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           'transition-transform duration-300 ease-in-out',
           'flex flex-col',
           'w-[var(--sidebar-width)]',
+          desktopClosed && 'sidebar-desktop-closed',
           isOpen ? 'translate-x-0' : '-translate-x-full',
-          'lg:sticky lg:top-0 lg:z-30 lg:translate-x-0',
+          desktopClosed
+            ? 'lg:hidden'
+            : 'lg:sticky lg:top-0 lg:z-30 lg:translate-x-0',
           collapsed && 'sidebar-collapsed'
         )}
       >
         {/* ─── BRAND ─── */}
         <div className="sidebar-brand flex items-center gap-3">
-          <div className="sidebar-brand-icon">
-            <Rocket size={16} className="text-primary-foreground" strokeWidth={2} />
+          <div className="sidebar-brand-icon" aria-hidden="true">
+            <Image
+              src="/launchpad-logo.webp"
+              alt=""
+              width={36}
+              height={36}
+              className="h-full w-full object-contain"
+              priority
+            />
           </div>
           <div className="flex flex-col min-w-0 flex-1">
             <span className="sidebar-brand-name">Mission Control</span>
             <span className="sidebar-brand-sub">Launchpad</span>
           </div>
           <button
-            onClick={() => setCollapsed(v => !v)}
+            type="button"
+            onClick={() => {
+              onCloseDesktop?.();
+              setCollapsed(false);
+            }}
             className="sidebar-collapse-btn hidden lg:flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label="Close sidebar"
           >
             <PanelLeftClose size={16} strokeWidth={2} />
           </button>
         </div>
 
         {/* ─── SECTION HEADER ─── */}
-        <div className="sidebar-section-header">Navigation</div>
-
         {/* ─── NAVIGATION ─── */}
         <nav className="sidebar-nav">
-          <div className="flex flex-col gap-0.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={handleNavClick}
-                  data-tooltip={collapsed ? item.label : undefined}
-                  className={clsx('sidebar-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30', active && 'active')}
-                >
-                  <span className="sidebar-link-icon">
-                    <Icon size={16} strokeWidth={active ? 2 : 1.5} />
-                  </span>
-                  <span className="sidebar-link-label">{item.label}</span>
-                  {active && <span className="sidebar-link-indicator" />}
-                </Link>
-              );
-            })}
-          </div>
+          {navGroups.map((group) => (
+            <div key={group.label} className="sidebar-nav-group">
+              <div className="sidebar-section-header">{group.label}</div>
+              <div className="flex flex-col gap-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={handleNavClick}
+                      data-tooltip={collapsed ? item.label : undefined}
+                      className={clsx('sidebar-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30', active && 'active')}
+                    >
+                      <span className="sidebar-link-icon">
+                        <Icon size={16} strokeWidth={active ? 2.2 : 1.7} />
+                      </span>
+                      <span className="sidebar-link-copy">
+                        <span className="sidebar-link-label">{item.label}</span>
+                        <span className="sidebar-link-description">{item.description}</span>
+                      </span>
+                      {active && <span className="sidebar-link-indicator" />}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* ─── FOOTER: User + Logout ─── */}
@@ -169,29 +216,38 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   );
 }
 
-export function SidebarTrigger({ onClick, visible }: { onClick: () => void; visible: boolean }) {
+export function SidebarTrigger({
+  onClick,
+  visible,
+  desktopVisible = false,
+}: {
+  onClick: () => void;
+  visible: boolean;
+  desktopVisible?: boolean;
+}) {
   return (
     <button
       onClick={onClick}
       className={clsx(
-        'fixed left-3 top-3 z-30 lg:hidden',
-        'flex flex-col items-center justify-center gap-0.5',
-        'h-16 w-14 rounded-2xl',
-        'bg-gradient-to-br from-brand-600 to-brand-500',
-        'border-2 border-brand-400/30',
-        'text-primary-foreground shadow-xl shadow-brand-500/30',
-        'hover:shadow-2xl hover:shadow-brand-500/40 hover:brightness-110 hover:-translate-y-0.5',
-        'active:brightness-95 active:translate-y-0',
+        'fixed left-3 top-3 z-30',
+        'flex items-center justify-center',
+        'h-11 w-11 rounded-xl',
+        'bg-card',
+        'border border-border',
+        'text-foreground shadow-sm',
+        'hover:bg-muted hover:border-primary/40',
+        'active:translate-y-px',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
         'transition-all duration-200',
-        visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        desktopVisible && 'sidebar-trigger-desktop-visible',
+        visible
+          ? 'opacity-100 pointer-events-auto lg:opacity-0 lg:pointer-events-none'
+          : 'opacity-0 pointer-events-none',
+        desktopVisible && 'lg:opacity-100 lg:pointer-events-auto'
       )}
       aria-label="Open sidebar"
     >
-      <PanelLeft size={24} strokeWidth={2} />
-      <div className="flex gap-0.5" aria-hidden>
-        <div className="w-3 h-0.5 rounded-full bg-primary-foreground/60" />
-      </div>
+      <PanelLeft size={20} strokeWidth={2} />
     </button>
   );
 }

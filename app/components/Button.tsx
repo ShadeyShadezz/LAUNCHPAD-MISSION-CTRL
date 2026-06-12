@@ -8,15 +8,15 @@ const buttonVariants = cva(
   [
     'btn',
     'inline-flex items-center justify-center gap-2',
-    'rounded-lg border border-transparent',
+    'rounded-md border border-transparent',
     'font-semibold',
     'whitespace-nowrap',
     'no-underline hover:no-underline',
-    'tracking-[0.01em]',
-    'transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]',
+    'tracking-normal',
+    'transition-colors duration-150 ease-out',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
     'active:translate-y-[1px] active:transition-none',
-    'disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:shadow-none',
+    'disabled:opacity-100 disabled:pointer-events-none disabled:cursor-not-allowed disabled:shadow-none',
     'select-none',
   ],
   {
@@ -25,11 +25,8 @@ const buttonVariants = cva(
         primary: [
           'bg-primary border-primary/70',
           'text-primary-foreground',
-          'shadow-[0_10px_28px_-16px_rgb(var(--brand-800)/0.5)]',
           'hover:bg-brand-600',
           'hover:border-brand-700/60',
-          'hover:-translate-y-[1px]',
-          'hover:shadow-[0_14px_30px_-16px_rgb(var(--brand-800)/0.65)]',
         ],
         secondary: [
           'bg-card/80',
@@ -38,24 +35,17 @@ const buttonVariants = cva(
           'hover:bg-muted/70',
           'hover:border-border',
           'hover:text-foreground',
-          'hover:-translate-y-[1px]',
-          'hover:shadow-[0_10px_24px_-16px_rgb(var(--text-primary)/0.22)]',
         ],
         outline: [
           'bg-transparent',
           'border border-border',
           'text-foreground',
           'hover:bg-brand-500/8 hover:border-brand-400/65 hover:text-brand-700',
-          'hover:-translate-y-[1px]',
-          'hover:shadow-[0_8px_20px_-14px_rgb(var(--brand-500)/0.4)]',
           'dark:text-brand-400',
         ],
         destructive: [
           'btn-destructive-variant border-transparent',
           'text-destructive-foreground',
-          'shadow-[0_10px_24px_-16px_rgba(239,68,68,0.66)]',
-          'hover:-translate-y-[1px]',
-          'hover:shadow-[0_12px_26px_-15px_rgba(239,68,68,0.52)]',
         ],
         ghost: [
           'bg-transparent border-transparent',
@@ -67,16 +57,10 @@ const buttonVariants = cva(
         success: [
           'btn-success-variant',
           'text-success-foreground',
-          'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_6px_rgba(0,0,0,0.04)]',
-          'hover:-translate-y-[1px]',
-          'hover:shadow-[0_6px_15px_-3px_rgb(var(--brand-500)/0.3)]',
         ],
         warning: [
           'btn-warning-variant',
           'text-warning-foreground',
-          'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_6px_rgba(0,0,0,0.04)]',
-          'hover:-translate-y-[1px]',
-          'hover:shadow-[0_6px_15px_-3px_rgba(245,158,11,0.3)]',
         ],
       },
       size: {

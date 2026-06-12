@@ -215,7 +215,7 @@ export default function InteractionsPage() {
                   return (
                     <div
                       key={i.id}
-                      className="rounded-xl bg-card border border-border/80 p-6 shadow-sm hover:shadow-md hover:border-border transition-all duration-200"
+                      className="lmc-interaction-card rounded-xl bg-card border border-border/80 p-6 shadow-sm hover:shadow-md hover:border-border transition-all duration-200"
                     >
                       {/* Top row: Type badge + Partner + Date */}
                       <div className="flex items-start justify-between gap-5 mb-5">
@@ -235,13 +235,13 @@ export default function InteractionsPage() {
                             </div>
                           </div>
                         </div>
-                        <time className="text-sm text-muted-foreground/60 whitespace-nowrap shrink-0 font-medium">
+                        <time className="lmc-interaction-time text-sm text-muted-foreground/60 whitespace-nowrap shrink-0 font-medium">
                           {new Date(i.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </time>
                       </div>
 
                       {/* Meta row */}
-                      <div className="flex flex-wrap items-center gap-x-7 gap-y-2.5 mb-5 text-sm">
+                      <div className="lmc-interaction-meta flex flex-wrap items-center gap-x-7 gap-y-2.5 mb-5 text-sm">
                         <span className="text-muted-foreground/85 flex items-center gap-2.5">
                           <UserCheck size={13} className="text-primary/65 dark:text-brand-400" strokeWidth={1.5} />
                           <span className="font-medium text-foreground">{i.staff?.fullName || <MissingBadge label="Unknown" />}</span>
@@ -264,7 +264,7 @@ export default function InteractionsPage() {
 
                       {/* Notes — the WHY */}
                       {i.sharedNotes && i.sharedNotes.trim().length > 0 ? (
-                        <div className="rounded-lg border border-border/70 bg-secondary/65 px-4 py-3.5">
+                        <div className="lmc-interaction-notes rounded-lg border border-border/70 bg-secondary/65 px-4 py-3.5">
                           <div className="flex items-start gap-4">
                             <MessageSquareQuote size={14} className="text-primary dark:text-brand-400 shrink-0 mt-0.5" strokeWidth={1.5} />
                             <div>
@@ -274,7 +274,7 @@ export default function InteractionsPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="rounded-lg border border-dashed border-border/55 bg-secondary/40 px-4 py-3.5">
+                        <div className="lmc-interaction-notes lmc-interaction-notes--empty rounded-lg border border-dashed border-border/55 bg-secondary/40 px-4 py-3.5">
                           <div className="flex items-center gap-4">
                             <MessageSquareQuote size={14} className="text-muted-foreground/65" strokeWidth={1.5} />
                             <span className="text-sm text-muted-foreground/80 italic">No notes recorded for this interaction</span>
@@ -283,7 +283,7 @@ export default function InteractionsPage() {
                       )}
 
                       {/* Bottom: Logged to activity log badge */}
-                      <div className="mt-4 flex items-center gap-3">
+                      <div className="lmc-interaction-footer mt-4 flex items-center gap-3">
                         <div className="flex items-center gap-2.5 text-sm text-muted-foreground/70 font-medium uppercase tracking-wider">
                           <ArrowUpRight size={10} strokeWidth={2} />
                           Logged to activity log
@@ -307,7 +307,7 @@ export default function InteractionsPage() {
                 </div>
                 <div className="space-y-3">
                   {interactions.filter(i => i.needsFollowup).map((f) => (
-                    <div key={f.id} className="rounded-lg border border-border/60 bg-card p-5 hover:shadow-sm transition-all duration-200">
+                    <div key={f.id} className="lmc-followup-row rounded-lg border border-border/60 bg-card p-5 hover:shadow-sm transition-all duration-200">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-3 mb-1">

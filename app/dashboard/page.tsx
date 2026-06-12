@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import clsx from 'clsx';
-import { AlertCircle, Mail, Users, TrendingUp, ClipboardList, Shield } from 'lucide-react';
+import { AlertCircle, ArrowRight, Building2, Mail, Users, TrendingUp, ClipboardList, Shield, Activity } from 'lucide-react';
 import { buttonVariants } from '@/app/components/Button';
 
 interface RecentOrganization {
@@ -17,7 +17,7 @@ interface RecentOrganization {
   statusLabel?: string;
 }
 
-type Stat = { label: string; value: number; icon: React.ReactNode; color: 'primary' | 'success' | 'accent' | 'warning' };
+type Stat = { label: string; value: number; helper: string; icon: React.ReactNode; color: 'primary' | 'success' | 'accent' | 'warning' };
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
@@ -73,7 +73,11 @@ export default function Dashboard() {
   }, [user]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="lmc-page flex items-center justify-center">
+        <div className="ui-card px-8 py-8 text-sm font-medium text-muted-foreground">Loading dashboard...</div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -89,13 +93,12 @@ export default function Dashboard() {
   ];
 
   const stats: Stat[] = [
-    { label: 'Active Partners', value: recentOrganizations.length, icon: <Shield size={16} />, color: 'primary' },
-    { label: 'Total Partners', value: totalCount, icon: <Users size={16} />, color: 'success' },
-    { label: 'Pending', value: pendingCount, icon: <ClipboardList size={16} />, color: 'accent' },
+    { label: 'Active Partners', value: recentOrganizations.length, helper: 'Ready for outreach and relationship planning', icon: <Shield size={18} />, color: 'primary' },
+    { label: 'Total Partners', value: totalCount, helper: 'Organizations currently tracked in the workspace', icon: <Users size={18} />, color: 'success' },
+    { label: 'Pending Review', value: pendingCount, helper: 'Records that need status confirmation', icon: <ClipboardList size={18} />, color: 'accent' },
   ];
 
-  const quickActionButtonClass =
-    'lmc-quick-action-btn inline-flex w-fit items-center justify-center gap-2 rounded-md bg-[#047857] px-2.5 py-1.5 text-xs font-semibold uppercase leading-none transition-colors hover:bg-[#036b4f]';
+  const latestOrganizationName = recentOrganizations[0]?.name;
 
   return (
     <div className="lmc-page">
@@ -109,13 +112,20 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <section className="lmc-panel p-5 md:p-6">
-          <div className="lmc-toolbar mb-4">
-            <h3 className="text-base md:text-lg font-bold text-white">Quick Actions</h3>
-            <button type="button" onClick={() => router.push('/interactions/new')} className={quickActionButtonClass}>
-              <ClipboardList size={14} />
-              Log New Interaction
-            </button>
+        <section className="ui-card p-5 md:p-6">
+          <div className="lmc-toolbar lmc-dashboard-actions-header mb-4">
+            <div>
+              <p className="lmc-section-eyebrow">Workspace shortcuts</p>
+              <h3 className="text-base md:text-lg font-semibold text-foreground">Quick Actions</h3>
+            </div>
+            <div className="lmc-dashboard-prompt">
+              <Activity size={15} />
+              <span>
+                {latestOrganizationName
+                  ? `Recent focus: check whether ${latestOrganizationName} needs a follow-up before the next outreach cycle.`
+                  : 'Start with a partner check-in, then log what changed so the workspace stays current.'}
+              </span>
+            </div>
           </div>
 
           <div className="lmc-actions-grid">
@@ -126,10 +136,15 @@ export default function Dashboard() {
                   type="button"
                   key={action.label}
                   onClick={() => router.push(action.href)}
-                  className={quickActionButtonClass}
+                  className="lmc-action-tile w-full"
                 >
-                  <Icon size={13} />
-                  {action.label}
+                  <span className="lmc-action-icon">
+                    <Icon size={15} />
+                  </span>
+                  <span className="min-w-0 text-left">
+                    <span className="block truncate text-sm font-semibold text-foreground">{action.label}</span>
+                    <span className="block text-xs text-muted-foreground">{action.description}</span>
+                  </span>
                 </button>
               );
             })}
@@ -137,28 +152,42 @@ export default function Dashboard() {
         </section>
 
         <div className="w-full grid grid-cols-1 lg:grid-cols-[1.25fr_1fr] gap-6">
-          <section className="lmc-panel p-5 md:p-6">
-            <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
-              <h4 className="text-sm md:text-base font-bold text-foreground">Recent Organizations</h4>
-              <button type="button" onClick={() => router.push('/partners')} className={clsx(buttonVariants({ size: 'sm' }))}>View all</button>
+          <section className="ui-card lmc-section-card">
+            <div className="lmc-section-header">
+              <div>
+                <p className="lmc-section-eyebrow">Live directory</p>
+                <h4 className="lmc-section-heading">Recent Organizations</h4>
+              </div>
+              <button type="button" onClick={() => router.push('/partners')} className={clsx(buttonVariants({ variant: 'secondary', size: 'sm' }))}>
+                View all
+                <ArrowRight size={14} />
+              </button>
             </div>
 
             {recentOrganizations.length === 0 ? (
-              <p className="text-xs text-muted-foreground pt-4">No active partner records available.</p>
+              <div className="lmc-empty-message">No active partner records available.</div>
             ) : (
-              <ul className="space-y-2 pt-4">
+              <ul className="lmc-organization-list">
                 {recentOrganizations.map((org) => (
-                  <li key={org.id} className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2.5 gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">{org.name || 'No Organization Assigned'}</p>
-                      <p className="text-xs text-muted-foreground">Tier: {org.tier || 'Tier Not Set'}</p>
+                  <li key={org.id} className="lmc-organization-row">
+                    <div className="lmc-organization-mark" aria-hidden="true">
+                      <Building2 size={16} />
+                    </div>
+                    <div className="lmc-organization-copy">
+                      <p className="lmc-organization-name">{org.name || 'No Organization Assigned'}</p>
+                      <div className="lmc-organization-meta">
+                        <span>{org.tier || 'Tier not set'}</span>
+                        <span className="lmc-meta-dot" />
+                        <span>{org.status || 'Status unknown'}</span>
+                      </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => router.push(`/partnerships/${org.orgId || org.id}`)}
-                      className={clsx(buttonVariants({ size: 'sm' }), 'whitespace-nowrap')}
+                      className="lmc-row-action"
                     >
                       Profile
+                      <ArrowRight size={13} />
                     </button>
                   </li>
                 ))}
@@ -166,14 +195,17 @@ export default function Dashboard() {
             )}
           </section>
 
-          <section className="lmc-panel p-5 md:p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-lg bg-accent/10 text-accent">
+          <section className="ui-card lmc-section-card lmc-reminder-card">
+            <div className="lmc-reminder-header">
+              <div className="lmc-reminder-icon">
                 <AlertCircle size={18} />
               </div>
-              <h3 className="text-base md:text-lg font-bold text-foreground">Daily Reminder</h3>
+              <div>
+                <p className="lmc-section-eyebrow">Priority prompt</p>
+                <h3 className="lmc-section-heading">Daily Reminder</h3>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+            <p className="lmc-reminder-copy">
               Prioritize partner communication and review partnership statuses before end-of-day updates.
             </p>
             <button type="button" onClick={() => router.push('/email')} className={clsx(buttonVariants({ size: 'md' }))}>
@@ -186,16 +218,21 @@ export default function Dashboard() {
         <section className="lmc-stat-grid">
           {stats.map((s) => (
             <article key={s.label} className="lmc-stat-card">
-              <div className={clsx(
-                'mx-auto p-2 rounded-lg w-fit',
-                s.color === 'primary' ? 'text-primary bg-primary/10' :
-                s.color === 'success' ? 'text-success bg-success/10' :
-                s.color === 'accent' ? 'text-accent bg-accent/10' : 'text-warning bg-warning/10'
-              )}>
-                {s.icon}
+              <div className="lmc-stat-card-top">
+                <div className={clsx(
+                  'lmc-stat-card-icon',
+                  s.color === 'primary' ? 'text-primary bg-primary/10' :
+                  s.color === 'success' ? 'text-success bg-success/10' :
+                  s.color === 'accent' ? 'text-accent bg-accent/10' : 'text-warning bg-warning/10'
+                )}>
+                  {s.icon}
+                </div>
+                <p className={clsx('lmc-stat-card-value', s.color === 'primary' ? 'text-primary' : s.color === 'success' ? 'text-success' : s.color === 'accent' ? 'text-accent' : 'text-warning')}>{s.value}</p>
               </div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">{s.label}</p>
-              <p className={clsx('text-3xl font-bold leading-none', s.color === 'primary' ? 'text-primary' : s.color === 'success' ? 'text-success' : s.color === 'accent' ? 'text-accent' : 'text-warning')}>{s.value}</p>
+              <div>
+                <p className="lmc-stat-card-label">{s.label}</p>
+                <p className="lmc-stat-card-helper">{s.helper}</p>
+              </div>
             </article>
           ))}
         </section>

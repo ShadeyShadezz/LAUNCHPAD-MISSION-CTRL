@@ -22,33 +22,39 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        <section className="ui-card p-6 ui-stack-lg">
-          <h2 className="ui-section-title">Your Profile</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section className="ui-card lmc-settings-card">
+          <div className="lmc-section-header">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Full Name</p>
-              <p className="text-lg font-semibold text-foreground">{user?.fullName}</p>
+              <p className="lmc-section-eyebrow">Account identity</p>
+              <h2 className="lmc-section-heading">Your Profile</h2>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Your Role</p>
-              <p className="text-lg font-semibold text-foreground">{user?.role}</p>
+          </div>
+          <div className="lmc-profile-grid">
+            <div className="lmc-profile-field">
+              <p className="lmc-profile-label">Full Name</p>
+              <p className="lmc-profile-value">{user?.fullName || 'Not provided'}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Email</p>
-              <p className="text-lg font-semibold text-foreground">{user?.email}</p>
+            <div className="lmc-profile-field">
+              <p className="lmc-profile-label">Role</p>
+              <p className="lmc-profile-value">{user?.role || 'Staff'}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Access Level</p>
-              <p className="text-lg font-semibold text-success">Full access</p>
+            <div className="lmc-profile-field lmc-profile-field--wide">
+              <p className="lmc-profile-label">Email</p>
+              <p className="lmc-profile-value">{user?.email || 'Not provided'}</p>
+            </div>
+            <div className="lmc-profile-field">
+              <p className="lmc-profile-label">Access Level</p>
+              <p className="lmc-profile-value text-success">Full access</p>
             </div>
           </div>
         </section>
 
-        <section className="ui-card p-6">
-          <div className="flex items-center justify-between gap-4">
+        <section className="ui-card lmc-settings-card">
+          <div className="lmc-settings-row">
             <div>
-              <h2 className="ui-section-title">Appearance</h2>
-              <p className="text-sm text-muted-foreground mt-1">Choose your preferred theme</p>
+              <p className="lmc-section-eyebrow">Interface mode</p>
+              <h2 className="lmc-section-heading">Appearance</h2>
+              <p className="lmc-settings-description">Switch between bright workspace mode and focused dark mode.</p>
             </div>
             <Button
               onClick={toggleTheme}
@@ -65,11 +71,12 @@ const SettingsPage = () => {
           </div>
         </section>
 
-        <section className="ui-card p-6">
-          <div className="flex items-center justify-between gap-4">
+        <section className="ui-card lmc-settings-card">
+          <div className="lmc-settings-row">
             <div>
-              <h2 className="ui-section-title">Staff Members</h2>
-              <p className="text-sm text-muted-foreground mt-1">Manage staff accounts and permissions</p>
+              <p className="lmc-section-eyebrow">Team controls</p>
+              <h2 className="lmc-section-heading">Staff Members</h2>
+              <p className="lmc-settings-description">Manage team access, roles, and workspace permissions.</p>
             </div>
             <Button
               onClick={() => router.push('/staff')}

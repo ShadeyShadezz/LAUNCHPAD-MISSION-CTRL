@@ -122,23 +122,26 @@ export default function AddPartnerForm() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Add New Partnership</h1>
+    <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl ui-stack-lg">
+        <div className="ui-section">
+          <h1 className="lmc-page-title">Add New Partnership</h1>
+          <p className="ui-section-subtitle">Create a partner record with organization details, contacts, and status metadata.</p>
+        </div>
 
         {error && (
-          <div className="mb-6 p-4 lmc-banner lmc-banner--error rounded-lg">
+          <div className="p-4 lmc-banner lmc-banner--error rounded-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8 bg-card p-6 rounded-lg border">
+        <form onSubmit={handleSubmit} className="ui-card p-5 sm:p-6 ui-stack-lg">
           {/* SECTION 1: BASIC INFO */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+          <section className="ui-stack-md">
+            <h2 className="ui-section-title">Basic Information</h2>
+            <div className="ui-stack-md">
+              <div className="ui-field">
+                <label className="ui-label">
                   Organization Name *
                 </label>
                 <input
@@ -148,12 +151,12 @@ export default function AddPartnerForm() {
                   onChange={handleInputChange}
                   placeholder="e.g., Tech Innovations Inc."
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="ui-input"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+              <div className="ui-field">
+                <label className="ui-label">
                   Website URL
                 </label>
                 <input
@@ -162,20 +165,18 @@ export default function AddPartnerForm() {
                   value={formData.websiteUrl}
                   onChange={handleInputChange}
                   placeholder="https://example.com"
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="ui-input"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  School Type
-                </label>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="ui-field">
+                  <label className="ui-label">School Type</label>
                   <select
                     name="schoolType"
                     value={formData.schoolType}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="ui-select"
                   >
                     <option value="">Select...</option>
                     <option value="High School">High School</option>
@@ -184,15 +185,13 @@ export default function AddPartnerForm() {
                   </select>
                 </div>
 
-                <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Partner Type
-                </label>
+                <div className="ui-field">
+                  <label className="ui-label">Partner Type</label>
                   <select
                     name="partnerType"
                     value={formData.partnerType}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="ui-select"
                   >
                     <option value="">Select...</option>
                     <option value="Corporate">Corporate</option>
@@ -204,19 +203,19 @@ export default function AddPartnerForm() {
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* SECTION 2: CONTACTS - DEMONSTRATES MULTI-ENTRY FORM */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
-            <div className="space-y-4">
+          <section className="ui-stack-md">
+            <h2 className="ui-section-title">Contact Information</h2>
+            <div className="ui-stack-md">
               {contacts.map((contact, index) => (
                 <div
                   key={index}
-                  className="p-4 border rounded-lg space-y-3 bg-muted/30"
+                  className="rounded-xl border border-border bg-muted/30 p-4 ui-stack-md"
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-semibold text-foreground">
                       {contact.contactType} Contact
                     </span>
                     {contacts.length > 1 && (
@@ -230,7 +229,7 @@ export default function AddPartnerForm() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <input
                       type="text"
                       placeholder="Name"
@@ -238,7 +237,7 @@ export default function AddPartnerForm() {
                       onChange={(e) =>
                         handleContactChange(index, 'name', e.target.value)
                       }
-                      className="px-3 py-2 border rounded-lg text-sm"
+                      className="ui-input"
                     />
                     <input
                       type="email"
@@ -247,7 +246,7 @@ export default function AddPartnerForm() {
                       onChange={(e) =>
                         handleContactChange(index, 'email', e.target.value)
                       }
-                      className="px-3 py-2 border rounded-lg text-sm"
+                      className="ui-input"
                     />
                     <input
                       type="text"
@@ -256,7 +255,7 @@ export default function AddPartnerForm() {
                       onChange={(e) =>
                         handleContactChange(index, 'title', e.target.value)
                       }
-                      className="px-3 py-2 border rounded-lg text-sm"
+                      className="ui-input"
                     />
                     <select
                       value={contact.contactType}
@@ -267,7 +266,7 @@ export default function AddPartnerForm() {
                           e.target.value
                         )
                       }
-                      className="px-3 py-2 border rounded-lg text-sm"
+                      className="ui-select"
                     >
                       <option value="LEADERSHIP">Leadership</option>
                       <option value="PRIMARY">Primary</option>
@@ -280,25 +279,25 @@ export default function AddPartnerForm() {
               <button
                 type="button"
                 onClick={addContactField}
-                className="flex items-center gap-3 text-primary hover:text-primary/80 font-medium"
+                className="inline-flex w-fit items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <Plus className="w-4 h-4" />
                 Add Another Contact
               </button>
             </div>
-          </div>
+          </section>
 
           {/* SECTION 3: STATUS & TAGS */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Partnership Status</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+          <section className="ui-stack-md">
+            <h2 className="ui-section-title">Partnership Status</h2>
+            <div className="ui-stack-md">
+              <div className="ui-field">
+                <label className="ui-label">
                   Status
                 </label>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-3">
                   {['Active', 'Pending', 'Inactive'].map((status) => (
-                    <label key={status} className="flex items-center gap-3 cursor-pointer">
+                    <label key={status} className="ui-chip cursor-pointer">
                       <input
                         type="radio"
                         name="partnerStatus"
@@ -307,14 +306,14 @@ export default function AddPartnerForm() {
                         onChange={handleInputChange}
                         className="w-4 h-4 text-primary border-border bg-card focus:ring-primary/20"
                       />
-                      <span className="text-sm text-foreground">{status}</span>
+                      <span className="text-xs font-semibold text-foreground">{status}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+              <div className="ui-field">
+                <label className="ui-label">
                   Tags (comma-separated)
                 </label>
                 <input
@@ -323,25 +322,28 @@ export default function AddPartnerForm() {
                   value={formData.tags}
                   onChange={handleInputChange}
                   placeholder="e.g., tech, internships, mentorship"
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="ui-input"
                 />
+                <p className="ui-helper">Use simple comma-separated tags to improve discoverability.</p>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* FORM BUTTONS */}
-          <div className="flex gap-3 justify-end pt-4 border-t">
+          <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-end">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={() => router.back()}
+              fullWidth
+              className="sm:w-auto"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} fullWidth className="sm:w-auto">
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Creating...
                 </>
               ) : (

@@ -118,14 +118,15 @@ export default function SearchPage() {
             {dbError} <button className="ml-2 underline" onClick={() => window.location.reload()}>Retry</button>
           </div>
         )}
-        <div>
+        <div className="lmc-page-header">
+          <span className="lmc-kicker">Discovery</span>
           <h1 className="lmc-page-title">Global Deep Search</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="lmc-page-subtitle">
           Search organization names, statuses, course numbers, and nested contact records in real time.
           </p>
         </div>
 
-        <div className="relative">
+        <div className="lmc-search-box relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <input
             type="text"
@@ -143,8 +144,8 @@ export default function SearchPage() {
         )}
 
         {!dbError && query.trim().length > 0 && (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
+          <div className="lmc-search-results">
+            <p className="lmc-search-count">
               {filteredResults.length} result{filteredResults.length === 1 ? '' : 's'} found
             </p>
 
@@ -154,48 +155,47 @@ export default function SearchPage() {
               </div>
             ) : (
               filteredResults.map((partnership) => (
-                <div
+                <article
                   key={partnership.id}
-                  className="lmc-surface lmc-surface--interactive px-5 py-4"
+                  className="lmc-search-result-card lmc-surface lmc-surface--interactive"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h2 className="truncate text-lg font-bold text-foreground">
+                  <div className="lmc-search-result-main">
+                    <div className="lmc-search-result-copy">
+                      <h2 className="lmc-search-result-title">
                         {partnership.organizationName || 'Unnamed Partnership'}
                       </h2>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
-                        <span className="text-sm text-muted-foreground">
-                          Status: <span className="font-semibold text-foreground">{partnership.partnerStatus || 'Unspecified'}</span>
+                      <div className="lmc-search-result-meta">
+                        <span>
+                          Status <strong>{partnership.partnerStatus || 'Unspecified'}</strong>
                         </span>
-                        <span className="text-xs text-muted-foreground">&middot;</span>
-                        <span className="text-sm text-muted-foreground">
-                          Course: <span className="font-semibold text-foreground">{partnership.courseNumber ?? 'N/A'}</span>
+                        <span>
+                          Course <strong>{partnership.courseNumber ?? 'N/A'}</strong>
                         </span>
                       </div>
                     </div>
                     <Link
                       href={`/partnerships/${partnership.id}`}
-                      className="lmc-btn-outline-brand gap-1 px-3.5 py-2 text-sm font-semibold shrink-0"
+                      className="lmc-search-result-action lmc-btn-outline-brand gap-1 px-3.5 py-2 text-sm font-semibold shrink-0"
                     >
                       Details
                     </Link>
                   </div>
 
                   {(partnership.contacts || []).length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="lmc-search-contact-list">
                       {(partnership.contacts || []).slice(0, 3).map((contact) => (
                         <div
                           key={contact.id}
-                          className="rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-xs"
+                          className="lmc-search-contact-chip rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-xs"
                         >
                           <span className="font-semibold text-foreground">{contact.name}</span>
-                          <span className="mx-1 text-muted-foreground">&middot;</span>
+                          <span className="mx-1 text-muted-foreground">/</span>
                           <span className="text-muted-foreground">{contact.email}</span>
                         </div>
                       ))}
                     </div>
                   )}
-                </div>
+                </article>
               ))
             )}
           </div>

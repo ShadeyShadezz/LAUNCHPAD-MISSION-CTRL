@@ -25,11 +25,14 @@ function PartnerCard({ partner }: { partner: Partner }) {
   const router = useRouter();
   const primaryContact = partner.contacts[0];
   return (
-    <div onClick={() => router.push(`/partners/${partner.id}`)} className="group lmc-panel lmc-partner-card-surface block p-5 md:p-6 cursor-pointer hover:shadow-lg transition-all duration-200">
+    <div onClick={() => router.push(`/partners/${partner.id}`)} className="group lmc-panel lmc-partner-card-surface lmc-partner-directory-card block p-5 md:p-6 cursor-pointer hover:shadow-lg transition-all duration-200">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3 min-w-0">
+        <div className="flex items-start gap-4 min-w-0">
+          <div className="lmc-partner-avatar" aria-hidden="true">
+            <Building2 size={18} />
+          </div>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-1 min-w-0">
+            <div className="lmc-partner-title-row flex flex-wrap items-center gap-2 mb-1 min-w-0">
               <h3 className="text-lg md:text-xl font-bold text-foreground group-hover:text-primary truncate">{partner.organizationName}</h3>
               <span className={clsx(
                 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border',
@@ -38,12 +41,12 @@ function PartnerCard({ partner }: { partner: Partner }) {
                 'bg-muted/10 text-muted-foreground border-muted/20'
               )}>{partner.partnerStatus || 'N/A'}</span>
             </div>
-            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mb-2">
+            <div className="lmc-partner-tags flex flex-wrap gap-2 text-xs text-muted-foreground mb-2">
               {partner.industry && <span className="bg-muted/50 px-2 py-0.5 rounded">{partner.industry}</span>}
               {partner.partnerType && <span className="bg-muted/50 px-2 py-0.5 rounded">{partner.partnerType}</span>}
               {partner.courseNumber && <span className="bg-muted/50 px-2 py-0.5 rounded">Course #{partner.courseNumber}</span>}
             </div>
-            <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
+            <div className="lmc-partner-contact flex flex-col gap-0.5 text-xs text-muted-foreground">
               {primaryContact?.name && <span className="font-medium text-foreground">{primaryContact.name}</span>}
               {primaryContact?.email && <span className="text-primary">{primaryContact.email}</span>}
             </div>
@@ -57,6 +60,7 @@ function PartnerCard({ partner }: { partner: Partner }) {
             aria-label={`Edit ${partner.organizationName}`}
             title="Edit partner"
             onClick={e => { e.stopPropagation(); router.push(`/partners/${partner.id}/edit`); }}
+            className="lmc-partner-icon-btn"
           >
             <Edit2 size={16} />
           </Button>
@@ -67,7 +71,7 @@ function PartnerCard({ partner }: { partner: Partner }) {
             aria-label={`Open email for ${partner.organizationName}`}
             title="Send email"
             onClick={e => { e.stopPropagation(); router.push(`/email?partnerId=${partner.id}`); }}
-            className="border border-success/25 text-success hover:border-success/50 hover:text-success"
+            className="lmc-partner-icon-btn lmc-partner-icon-btn--success"
           >
             <TrendingUp size={16} />
           </Button>

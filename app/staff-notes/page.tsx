@@ -129,7 +129,7 @@ export default function StaffNotesPage() {
             <p className="text-sm text-muted-foreground">Post one above to get started.</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="lmc-notes-list">
             {notes.map((note) => {
               const createdAt = new Date(note.createdAt);
               const createdDate = createdAt.toLocaleDateString('en-US', {
@@ -143,17 +143,17 @@ export default function StaffNotesPage() {
               });
 
               return (
-                <div key={note.id} className="lmc-surface p-7">
+                <div key={note.id} className="lmc-note-card lmc-surface p-7">
                   <div className="min-w-0 flex-1">
-                    <p className="text-base text-foreground whitespace-pre-wrap break-words leading-relaxed">{note.content}</p>
-                    <div className="mt-5 text-sm">
-                      <span className="inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 font-semibold text-foreground mr-[14px] mb-2">
+                    <p className="lmc-note-content text-base text-foreground whitespace-pre-wrap break-words leading-relaxed">{note.content}</p>
+                    <div className="lmc-note-meta mt-5 text-sm">
+                      <span className="lmc-note-author inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 font-semibold text-foreground mr-[14px] mb-2">
                         {note.author.fullName}
                       </span>
-                      <span className="inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 text-muted-foreground mr-[14px] mb-2">
+                      <span className="lmc-note-chip inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 text-muted-foreground mr-[14px] mb-2">
                         {createdDate}
                       </span>
-                      <span className="inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 text-muted-foreground mb-2">
+                      <span className="lmc-note-chip inline-flex items-center rounded-md bg-secondary/70 px-2.5 py-1 text-muted-foreground mb-2">
                         {createdTime}
                       </span>
                     </div>

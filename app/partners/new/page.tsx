@@ -99,10 +99,10 @@ export default function NewPartnerPage() {
   return (
     <div className="lmc-page bg-background">
       <div className="lmc-page-inner max-w-2xl">
-        <div>
+        <div className="lmc-page-header lmc-form-page-header">
           <Link
             href="/partners"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
+            className="lmc-back-link inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
             <ArrowLeft size={16} />
             Back to Partners
@@ -111,8 +111,8 @@ export default function NewPartnerPage() {
           <p className="mt-2 text-muted-foreground">Add a new partner organization to your directory.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="lmc-surface p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="lmc-partner-form space-y-8">
+          <div className="lmc-surface lmc-form-section p-6 space-y-6">
             <h2 className="text-base md:text-lg font-bold text-foreground">Organization Details</h2>
 
             <div className="space-y-4">
@@ -166,13 +166,13 @@ export default function NewPartnerPage() {
             </div>
           </div>
 
-          <div className="lmc-surface p-6 space-y-6">
+          <div className="lmc-surface lmc-form-section p-6 space-y-6">
             <h2 className="text-base md:text-lg font-bold text-foreground">Contacts</h2>
 
             {formData.contacts.length > 0 && (
-              <div className="space-y-3">
+              <div className="lmc-contact-list space-y-3">
                 {formData.contacts.map((contact, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <div key={index} className="lmc-contact-row flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                     <div>
                       <p className="font-medium text-foreground">{contact.name}</p>
                       <p className="text-sm text-muted-foreground">{contact.email} • {contact.title}</p>
@@ -189,7 +189,7 @@ export default function NewPartnerPage() {
               </div>
             )}
 
-            <div className="border-t border-border pt-6 space-y-4">
+            <div className="lmc-contact-editor border-t border-border pt-6 space-y-4">
               <h3 className="text-base md:text-lg font-bold text-foreground">Add Contact</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -252,7 +252,7 @@ export default function NewPartnerPage() {
             </div>
           </div>
 
-          <div className="flex gap-4">
+          <div className="lmc-form-actions flex gap-4">
             <Button
               type="submit"
               disabled={loading || !formData.organizationName}
@@ -260,7 +260,7 @@ export default function NewPartnerPage() {
             >
               {loading ? 'Creating Partner...' : 'Create Partner'}
             </Button>
-            <Link href="/partners" className={buttonVariants({ variant: 'secondary', size: 'md' })}>
+            <Link href="/partners" className={`${buttonVariants({ variant: 'secondary', size: 'md' })} lmc-cancel-link`}>
               Cancel
             </Link>
           </div>

@@ -102,7 +102,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           </div>
           <button
             onClick={() => setCollapsed(v => !v)}
-            className="sidebar-collapse-btn hidden lg:flex"
+            className="sidebar-collapse-btn hidden lg:flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <PanelLeftClose size={16} strokeWidth={2} />
@@ -124,7 +124,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
                   href={item.href}
                   onClick={handleNavClick}
                   data-tooltip={collapsed ? item.label : undefined}
-                  className={clsx('sidebar-link', active && 'active')}
+                  className={clsx('sidebar-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30', active && 'active')}
                 >
                   <span className="sidebar-link-icon">
                     <Icon size={16} strokeWidth={active ? 2 : 1.5} />
@@ -157,7 +157,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           </div>
           <button
             onClick={handleLogout}
-            className="sidebar-logout-link"
+            className="sidebar-logout-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30"
             data-tooltip={collapsed ? 'Sign Out' : undefined}
           >
             <LogOut size={14} strokeWidth={1.5} />
@@ -182,6 +182,7 @@ export function SidebarTrigger({ onClick, visible }: { onClick: () => void; visi
         'text-primary-foreground shadow-xl shadow-brand-500/30',
         'hover:shadow-2xl hover:shadow-brand-500/40 hover:brightness-110 hover:-translate-y-0.5',
         'active:brightness-95 active:translate-y-0',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
         'transition-all duration-200',
         visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       )}

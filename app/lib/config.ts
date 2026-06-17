@@ -25,19 +25,11 @@ export const config = {
   },
   AI_MODEL: 'gpt-4o-mini',
 
-  // Google OAuth — optional, used for Gmail integration
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
-  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
-  GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || '',
-
-  // Gmail refresh token — optional
-  GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN || '',
+  // Resend API — used for sending emails
+  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
 
   // Email sender
   EMAIL_SENDER: process.env.EMAIL_SENDER || process.env.EMAIL_FROM || '',
-
-  // Public-facing config
-  NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
 
   // Server port (Express backend)
   PORT: parseInt(process.env.PORT || '5000', 10),
